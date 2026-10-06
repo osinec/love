@@ -1,444 +1,1218 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Матрица Эйзенхауэра</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
- 
-<style>
-:root{
---bg:#0d1020;
---panel:#1b1f2e;
---text:#f5f6fa;
---muted:#9aa0b5;
---accent:#6f7dff;
-}
- 
-*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,sans-serif;}
- 
-body{
-min-height:100vh;
-background:
-linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
-linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px),
-var(--bg);
-background-size:40px 40px;
-color:var(--text);
-}
- 
-header{
-text-align:center;
-padding:18px;
-font-size:26px;
-font-weight:700;
-color:var(--accent);
-}
- 
-.board{padding:14px;display:grid;gap:12px;grid-template-columns:1fr 1fr;}
-.quadrant{
-position:relative;
-background:linear-gradient(180deg,#1e2334,#191d2b);
-border-radius:22px;
-padding:16px 18px 18px 22px;
-box-shadow:0 10px 24px rgba(0,0,0,.45);
-}
-.quadrant::before{
-content:'';
-position:absolute;left:0;top:0;bottom:0;width:5px;
-border-radius:22px 0 0 22px;
-}
-.q1::before{background:#ff6b6b;}
-.q2::before{background:#4dabff;}
-.q3::before{background:#ffd666;}
-.q4::before{background:#6ee7b7;}
- 
-h2{font-size:14px;font-weight:600;margin-bottom:10px;}
-.tasks{
-display:flex;
-flex-direction:column;
-gap:8px;
-min-height:40px;
-}
- 
-.task{
-padding:10px 12px;
-border-radius:12px;
-font-size:13px;
-cursor:pointer;
-transition:.25s;
-user-select:none;
-}
-.task.q1{background:#ff6b6b;}
-.task.q2{background:#4dabff;}
-.task.q3{background:#ffd666;color:#222;}
-.task.q4{background:#6ee7b7;color:#222;}
-.task small{display:block;font-size:11px;opacity:.75;margin-top:4px;}
- 
-.task.done{
-opacity:.35;
-text-decoration:line-through;
-filter:grayscale(1);
-}
- 
-.pomodoro{
-margin:14px;
-padding:18px;
-background:linear-gradient(180deg,#1e2334,#191d2b);
-border-radius:22px;
-}
-.timer{text-align:center;font-size:44px;font-weight:700;margin:16px 0;}
-.pomo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-label{font-size:12px;color:var(--muted);}
-input{
-width:100%;padding:10px 12px;border-radius:12px;
-border:none;background:#0f1324;color:white;
-}
-.mode-buttons,.buttons{
-display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;
-}
-.buttons{grid-template-columns:1fr 1fr 1fr;}
-button{
-padding:12px;border-radius:14px;border:none;
-font-weight:600;cursor:pointer;color:white;
-}
-.primary{background:linear-gradient(135deg,#6f7dff,#7f8cff);}
-.secondary{background:linear-gradient(135deg,#4a4f6a,#5c6280);}
-button.active{outline:2px solid var(--accent);}
- 
-/* MODAL */
-#modal{
-display:none;
-position:fixed;
-top:0;left:0;right:0;bottom:0;
-background:rgba(0,0,0,0.7);
-z-index:100;
-justify-content:center;
-align-items:center;
-}
-#modalContent{
-background:var(--panel);
-padding:20px;
-border-radius:16px;
-width:90%;
-max-width:400px;
-color:var(--text);
-}
-#modal h3{margin-bottom:12px;}
-#modal input, #modal textarea{
-width:100%;
-padding:10px;
-margin-bottom:12px;
-border-radius:10px;
-background:#0f1324;
-color:white;
-border:none;
-}
-#modal button{
-width:100%;
-margin-top:8px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пиксельное письмо 💌</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #1a0f2e;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            padding: 1rem;
+            background-image:
+                radial-gradient(circle at 50% 40%, rgba(230, 57, 70, 0.12) 0%, transparent 55%),
+                radial-gradient(circle at 50% 60%, rgba(180, 138, 214, 0.08) 0%, transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 16px 16px, 16px 16px;
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            transform: scale(0.85);
+            pointer-events: none;
+            position: absolute;
+        }
+
+        /* ============================================ */
+        /* КОНВЕРТ                                       */
+        /* ============================================ */
+        .envelope-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 3rem;
+            position: relative;
+            animation: float 4s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .envelope-container:hover {
+            transform: scale(1.05);
+        }
+
+        .envelope-container:active {
+            transform: scale(0.98);
+        }
+
+        .envelope-container::before {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 32px;
+            background: radial-gradient(ellipse at center, rgba(230, 57, 70, 0.5) 0%, rgba(230, 57, 70, 0.15) 40%, transparent 75%);
+            filter: blur(10px);
+            z-index: -1;
+            transition: opacity 0.5s ease;
+        }
+
+        .envelope-container.opening::before {
+            opacity: 0;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-6px) rotate(-0.5deg); }
+            50% { transform: translateY(-12px) rotate(0deg); }
+            75% { transform: translateY(-6px) rotate(0.5deg); }
+        }
+
+        .pixel-envelope {
+            width: 448px;
+            height: 336px;
+            display: block;
+            shape-rendering: crispEdges;
+            animation: glow 3.5s ease-in-out infinite;
+            overflow: visible;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                filter: drop-shadow(0 12px 0 rgba(0, 0, 0, 0.4))
+                        drop-shadow(0 0 15px rgba(230, 57, 70, 0.35))
+                        drop-shadow(0 0 30px rgba(230, 57, 70, 0.15));
+            }
+            50% {
+                filter: drop-shadow(0 12px 0 rgba(0, 0, 0, 0.4))
+                        drop-shadow(0 0 25px rgba(230, 57, 70, 0.65))
+                        drop-shadow(0 0 50px rgba(230, 57, 70, 0.3));
+            }
+        }
+
+        .top-flap {
+            transform-origin: 90px 30px;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .envelope-container.opening .top-flap {
+            transform: rotateX(180deg) translateY(-4px);
+        }
+
+        .letter-paper {
+            transform-origin: center bottom;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+        }
+
+        .envelope-container.opening .letter-paper {
+            transform: translateY(-28px);
+        }
+
+        .heart-seal {
+            transition: opacity 0.3s ease, transform 0.5s ease;
+        }
+
+        .envelope-container.opening .heart-seal {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.5);
+        }
+
+        .message {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            color: #ffe9a7;
+            text-align: center;
+            line-height: 1.9;
+            letter-spacing: 2px;
+            text-shadow: 4px 4px 0 #4a2a5a, 6px 6px 0 rgba(0, 0, 0, 0.35);
+            background-color: #3d2a4f;
+            padding: 1.5rem 2.4rem;
+            border: 4px solid #b48ad6;
+            box-shadow:
+                inset -4px -4px 0 #2b1b3d,
+                inset 4px 4px 0 #d9b8ff,
+                0 0 25px rgba(180, 138, 214, 0.35),
+                0 8px 0 rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            word-break: break-word;
+            animation: blink 2.6s step-end infinite;
+            position: relative;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.92; }
+        }
+
+        /* ============================================ */
+        /* ПИСЬМО                                        */
+        /* ============================================ */
+        .letter-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 700px;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s;
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .letter-screen.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .letter-screen.destroyed .letter-frame,
+        .letter-screen.destroyed .back-btn {
+            display: none;
+        }
+
+        .letter-frame {
+            position: relative;
+            background-color: #fbf3dc;
+            width: 100%;
+            max-width: 640px;
+            min-height: 380px;
+            padding: 2.5rem 2rem;
+            border: 4px solid #8a6a44;
+            box-shadow:
+                inset 4px 4px 0 #ffffff,
+                inset -4px -4px 0 #d8c192,
+                0 0 0 4px #a8885e,
+                0 0 0 8px #6d5235,
+                0 12px 0 rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(230, 57, 70, 0.35);
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(200, 180, 140, 0.15) 1px, transparent 1px),
+                radial-gradient(circle at 70% 60%, rgba(200, 180, 140, 0.12) 1px, transparent 1px),
+                radial-gradient(circle at 40% 80%, rgba(200, 180, 140, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px, 50px 50px, 40px 40px;
+            transition: all 0.4s ease;
+        }
+
+        .letter-frame::before,
+        .letter-frame::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #a8202c;
+            transition: border-color 0.4s ease;
+        }
+
+        .letter-frame::before {
+            top: 8px;
+            left: 8px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .letter-frame::after {
+            bottom: 8px;
+            right: 8px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .corner {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #a8202c;
+            transition: border-color 0.4s ease;
+        }
+
+        .corner.tr {
+            top: 8px;
+            right: 8px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner.bl {
+            bottom: 8px;
+            left: 8px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .letter-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            color: #3d2a4f;
+            line-height: 2.2;
+            letter-spacing: 1px;
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 200px;
+            transition: color 0.5s ease, opacity 0.5s ease;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 16px;
+            background-color: #e63946;
+            margin-left: 4px;
+            vertical-align: middle;
+            animation: cursorBlink 0.8s step-end infinite;
+        }
+
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .cursor.hidden {
+            display: none;
+        }
+
+        /* ============================================ */
+        /* КНОПКА "ЗАКРЫТЬ ПИСЬМО"                       */
+        /* ============================================ */
+        .back-btn {
+            margin-top: 2rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.85rem;
+            color: #ffe9a7;
+            background-color: #3d2a4f;
+            border: 4px solid #b48ad6;
+            padding: 0.9rem 1.6rem;
+            cursor: pointer;
+            box-shadow:
+                inset -4px -4px 0 #2b1b3d,
+                inset 4px 4px 0 #d9b8ff,
+                0 6px 0 #1a0f2e;
+            transition: all 0.15s ease;
+            letter-spacing: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .back-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                inset -4px -4px 0 #2b1b3d,
+                inset 4px 4px 0 #d9b8ff,
+                0 8px 0 #1a0f2e,
+                0 0 15px rgba(180, 138, 214, 0.5);
+        }
+
+        .back-btn:active {
+            transform: translateY(4px);
+            box-shadow:
+                inset -4px -4px 0 #2b1b3d,
+                inset 4px 4px 0 #d9b8ff,
+                0 2px 0 #1a0f2e;
+        }
+
+        /* ============================================ */
+        /* ОБРАТНЫЙ ОТСЧЁТ                                */
+        /* ============================================ */
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 15, 46, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .countdown-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .countdown-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.4rem;
+            color: #ffe9a7;
+            text-align: center;
+            line-height: 2;
+            letter-spacing: 2px;
+            text-shadow:
+                4px 4px 0 #a8202c,
+                6px 6px 0 rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(230, 57, 70, 0.8);
+            background-color: #3d2a4f;
+            padding: 2rem 2.5rem;
+            border: 4px solid #e63946;
+            box-shadow:
+                inset -4px -4px 0 #2b1b3d,
+                inset 4px 4px 0 #d9b8ff,
+                0 0 40px rgba(230, 57, 70, 0.6);
+            max-width: 90%;
+        }
+
+        .countdown-number {
+            display: inline-block;
+            font-size: 2.8rem;
+            color: #e63946;
+            text-shadow:
+                3px 3px 0 #ffe9a7,
+                6px 6px 0 rgba(0, 0, 0, 0.5);
+            animation: countdownPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes countdownPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        /* ============================================ */
+        /* АНИМАЦИЯ РАСТВОРЕНИЯ ПИСЬМА                   */
+        /* ============================================ */
+        .letter-screen.dissolving .letter-frame {
+            animation: dissolveFrame 1.5s ease-in forwards;
+        }
+
+        .letter-screen.dissolving .letter-text {
+            animation: dissolveText 1.5s ease-in forwards;
+        }
+
+        .letter-screen.dissolving .back-btn {
+            animation: dissolveBtn 1s ease-in forwards;
+        }
+
+        @keyframes dissolveFrame {
+            0% {
+                filter: blur(0px) brightness(1);
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            30% {
+                filter: blur(0px) brightness(1.3) hue-rotate(-20deg);
+                transform: scale(1.02) rotate(-1deg);
+                opacity: 1;
+            }
+            60% {
+                filter: blur(1px) brightness(0.7) hue-rotate(-30deg) saturate(0.5);
+                transform: scale(0.98) rotate(1deg);
+                opacity: 0.7;
+            }
+            100% {
+                filter: blur(8px) brightness(0.2) hue-rotate(-40deg) saturate(0);
+                transform: scale(0.85) rotate(-3deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes dissolveText {
+            0% {
+                color: #3d2a4f;
+                filter: blur(0px);
+                opacity: 1;
+            }
+            40% {
+                color: #a8202c;
+                filter: blur(0px);
+                opacity: 1;
+            }
+            100% {
+                color: #e63946;
+                filter: blur(6px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes dissolveBtn {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.95); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+
+        .dissolve-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 400;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #e63946;
+            opacity: 0;
+        }
+
+        /* ============================================ */
+        /* КНОПКА ЗВУКА                                  */
+        /* ============================================ */
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            color: #ffe9a7;
+            background-color: #3d2a4f;
+            border: 4px solid #b48ad6;
+            cursor: pointer;
+            box-shadow:
+                inset -4px -4px 0 #2b1b3d,
+                inset 4px 4px 0 #d9b8ff,
+                0 5px 0 #1a0f2e;
+            transition: all 0.15s ease;
+            z-index: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sound-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                inset -4px -4px 0 #2b1b3d,
+                inset 4px 4px 0 #d9b8ff,
+                0 7px 0 #1a0f2e,
+                0 0 15px rgba(180, 138, 214, 0.5);
+        }
+
+        .sound-toggle:active {
+            transform: translateY(3px);
+            box-shadow:
+                inset -4px -4px 0 #2b1b3d,
+                inset 4px 4px 0 #d9b8ff,
+                0 2px 0 #1a0f2e;
+        }
+
+        .sound-toggle.muted {
+            opacity: 0.5;
+        }
+
+        @media (max-width: 520px) {
+            .pixel-envelope {
+                width: 300px;
+                height: 225px;
+            }
+            .message {
+                font-size: 0.85rem;
+                padding: 1rem 1.4rem;
+                letter-spacing: 1px;
+            }
+            .letter-frame {
+                padding: 1.8rem 1.2rem;
+                min-height: 320px;
+            }
+            .letter-text {
+                font-size: 0.7rem;
+                line-height: 2;
+            }
+            .back-btn {
+                font-size: 0.7rem;
+                padding: 0.7rem 1.2rem;
+            }
+            .sound-toggle {
+                width: 40px;
+                height: 40px;
+                font-size: 0.8rem;
+                top: 12px;
+                right: 12px;
+            }
+            .countdown-text {
+                font-size: 1rem;
+                padding: 1.5rem 1.5rem;
+            }
+            .countdown-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
- 
 <body>
- 
-<header>Матрица Эйзенхауэра</header>
- 
-<div class="board">
-<div class="quadrant q1" data-id="q1"><h2>Важно · Срочно</h2><div class="tasks" ondrop="drop(event)" ondragover="allowDrop(event)"></div></div>
-<div class="quadrant q2" data-id="q2"><h2>Важно · Не срочно</h2><div class="tasks" ondrop="drop(event)" ondragover="allowDrop(event)"></div></div>
-<div class="quadrant q3" data-id="q3"><h2>Не важно · Срочно</h2><div class="tasks" ondrop="drop(event)" ondragover="allowDrop(event)"></div></div>
-<div class="quadrant q4" data-id="q4"><h2>Не важно · Не срочно</h2><div class="tasks" ondrop="drop(event)" ondragover="allowDrop(event)"></div></div>
-</div>
- 
-<div class="pomodoro">
-<div class="pomo-grid">
-<div><label>Работа (мин)</label><input id="workInput" type="number" value="25"></div>
-<div><label>Отдых (мин)</label><input id="breakInput" type="number" value="5"></div>
-</div>
- 
-<div id="timer" class="timer">25:00</div>
- 
-<div class="mode-buttons">
-<button id="workBtn" class="secondary active">Работа</button>
-<button id="breakBtn" class="secondary">Отдых</button>
-</div>
- 
-<div class="buttons">
-<button id="startBtn" class="primary">Старт</button>
-<button id="pauseBtn" class="secondary">Пауза</button>
-<button id="resetBtn" class="secondary">Сбросить</button>
-</div>
-</div>
- 
-<!-- Modal -->
-<div id="modal">
-<div id="modalContent">
-<h3 id="modalTitle">Новая задача</h3>
-<input type="text" id="taskTitle" placeholder="Название задачи">
-<textarea id="taskComment" placeholder="Комментарий (необязательно)" rows="3"></textarea>
-<button id="saveTaskBtn" class="primary">Сохранить</button>
-<button id="deleteTaskBtn" class="secondary">Удалить</button>
-<button id="cancelTaskBtn" class="secondary">Отмена</button>
-</div>
-</div>
- 
-<script>
-// ===== NOTIFICATIONS & SOUND =====
-if ("Notification" in window && Notification.permission === "default") {
-Notification.requestPermission();
-}
- 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
- 
-function playSound(){
-const o = audioCtx.createOscillator();
-const g = audioCtx.createGain();
-o.frequency.value = 880;
-g.gain.value = 0.12;
-o.connect(g); g.connect(audioCtx.destination);
-o.start();
-o.stop(audioCtx.currentTime + 0.3);
-}
- 
-function playFinishSound(times = 3, interval = 450){
-let count = 0;
-const id = setInterval(() => {
-playSound();
-count++;
-if(count >= times) clearInterval(id);
-}, interval);
-}
- 
-// ===== TIMER =====
-let mode='work';
-let duration=25*60000;
-let endTime=null;
-let raf=null;
-let finished=false;
- 
-function format(ms){
-ms=Math.max(0,ms);
-const s=Math.floor(ms/1000);
-return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-}
- 
-function notify(){
-playFinishSound(3);
-if(Notification.permission==="granted"){
-new Notification("⏰ Таймер завершён",{
-body: mode==='work' ? "Пора отдыхать" : "Пора работать"
-});
-}
-}
- 
-function tick(){
-const left=endTime-Date.now();
-timer.textContent=format(left);
-if(left<=0 && !finished){
-finished=true;
-notify();
-cancelAnimationFrame(raf);
-raf=null;
-} else if(left>0){
-raf=requestAnimationFrame(tick);
-}
-}
- 
-function start(){
-if(raf)return;
-audioCtx.resume();
-finished=false;
-endTime=Date.now()+duration;
-tick();
-}
- 
-function pause(){
-if(!raf)return;
-duration=endTime-Date.now();
-cancelAnimationFrame(raf);
-raf=null;
-}
- 
-function reset(){
-pause();
-finished=false;
-duration=(mode==='work'?parseInt(workInput.value)||25:parseInt(breakInput.value)||5)*60000;
-timer.textContent=format(duration);
-}
- 
-function setMode(m){
-mode=m;
-reset();
-workBtn.classList.toggle('active',m==='work');
-breakBtn.classList.toggle('active',m==='break');
-}
- 
-document.getElementById('startBtn').onclick=start;
-document.getElementById('pauseBtn').onclick=pause;
-document.getElementById('resetBtn').onclick=reset;
-document.getElementById('workBtn').onclick=()=>setMode('work');
-document.getElementById('breakBtn').onclick=()=>setMode('break');
- 
-reset();
- 
-// ===== TASKS SYSTEM =====
-let currentQuadrantId = null;
-let editingTaskId = null;
-let tasks = JSON.parse(localStorage.getItem('eisenhowerTasks')) || {};
- 
-function saveTasks() {
-localStorage.setItem('eisenhowerTasks', JSON.stringify(tasks));
-}
- 
-function renderTasks() {
-document.querySelectorAll('.tasks').forEach(el => el.innerHTML = '');
-for (const [quadId, taskList] of Object.entries(tasks)) {
-const container = document.querySelector(`.quadrant[data-id="${quadId}"] .tasks`);
-if (!container) continue;
-taskList.forEach(task => {
-const el = document.createElement('div');
-el.className = `task ${quadId}`;
-el.draggable = true;
-el.dataset.id = task.id;
-el.innerHTML = `${task.title}${task.comment ? `<small>${task.comment}</small>` : ''}`;
-if (task.done) {
-el.classList.add('done');
-}
-el.ondragstart = (e) => {
-e.dataTransfer.setData('text/plain', JSON.stringify({ taskId: task.id, fromQuad: quadId }));
-};
-el.onclick = () => {
-el.classList.toggle('done');
-task.done = el.classList.contains('done');
-saveTasks();
-};
-el.ondblclick = (e) => {
-e.stopPropagation();
-editTask(quadId, task.id);
-};
-container.appendChild(el);
-});
-}
-}
- 
-function addTaskToQuadrant(quadId, title, comment = '') {
-if (!tasks[quadId]) tasks[quadId] = [];
-const newTask = {
-id: Date.now().toString(),
-title,
-comment,
-done: false
-};
-tasks[quadId].push(newTask);
-saveTasks();
-renderTasks();
-}
- 
-function editTask(quadId, taskId) {
-const task = tasks[quadId].find(t => t.id === taskId);
-if (!task) return;
- 
-editingTaskId = taskId;
-currentQuadrantId = quadId;
- 
-document.getElementById('modalTitle').textContent = 'Редактировать задачу';
-document.getElementById('taskTitle').value = task.title;
-document.getElementById('taskComment').value = task.comment || '';
-document.getElementById('modal').style.display = 'flex';
-document.getElementById('deleteTaskBtn').style.display = 'block';
-}
- 
-// Назначаем обработчики кликов по квадрантам
-document.querySelectorAll('.quadrant').forEach(quadrant => {
-quadrant.addEventListener('click', (e) => {
-// Если кликнули на задачу — ничего не делаем (обработка в renderTasks)
-if (e.target.closest('.task')) return;
-// Иначе — открываем модалку для добавления
-currentQuadrantId = quadrant.dataset.id;
-editingTaskId = null;
-document.getElementById('modalTitle').textContent = 'Новая задача';
-document.getElementById('taskTitle').value = '';
-document.getElementById('taskComment').value = '';
-document.getElementById('modal').style.display = 'flex';
-document.getElementById('deleteTaskBtn').style.display = 'none';
-});
-});
- 
-document.getElementById('saveTaskBtn').onclick = () => {
-const title = document.getElementById('taskTitle').value.trim();
-const comment = document.getElementById('taskComment').value.trim();
-if (!title) {
-alert('Введите название задачи');
-return;
-}
- 
-if (editingTaskId) {
-const task = tasks[currentQuadrantId].find(t => t.id === editingTaskId);
-if (task) {
-task.title = title;
-task.comment = comment;
-}
-} else {
-addTaskToQuadrant(currentQuadrantId, title, comment);
-}
- 
-document.getElementById('modal').style.display = 'none';
-saveTasks();
-renderTasks();
-};
- 
-document.getElementById('deleteTaskBtn').onclick = () => {
-if (!editingTaskId) return;
-const index = tasks[currentQuadrantId].findIndex(t => t.id === editingTaskId);
-if (index !== -1) {
-tasks[currentQuadrantId].splice(index, 1);
-saveTasks();
-renderTasks();
-}
-document.getElementById('modal').style.display = 'none';
-};
- 
-document.getElementById('cancelTaskBtn').onclick = () => {
-document.getElementById('modal').style.display = 'none';
-};
- 
-document.getElementById('modal').onclick = (e) => {
-if (e.target === document.getElementById('modal')) {
-document.getElementById('modal').style.display = 'none';
-}
-};
- 
-// Drag & Drop
-function allowDrop(e) {
-e.preventDefault();
-}
- 
-function drop(e) {
-e.preventDefault();
-const dataStr = e.dataTransfer.getData('text/plain');
-if (!dataStr) return;
-const data = JSON.parse(dataStr);
-const toQuad = e.currentTarget.closest('.quadrant').dataset.id;
- 
-if (data.fromQuad === toQuad) return;
- 
-const fromList = tasks[data.fromQuad];
-const taskIndex = fromList.findIndex(t => t.id === data.taskId);
-if (taskIndex === -1) return;
- 
-const task = fromList.splice(taskIndex, 1)[0];
-if (!tasks[toQuad]) tasks[toQuad] = [];
-tasks[toQuad].push(task);
- 
-saveTasks();
-renderTasks();
-}
- 
-// Initial render
-renderTasks();
-</script>
- 
+    <button class="sound-toggle" id="soundToggle" title="Звук вкл/выкл">♪</button>
+
+    <!-- ЭКРАН 1: КОНВЕРТ -->
+    <div class="screen" id="envelopeScreen">
+        <div class="envelope-container" id="envelopeContainer">
+            <svg class="pixel-envelope" viewBox="0 0 180 135" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+                <rect x="18" y="32" width="144" height="96" fill="#0d0619" opacity="0.7"/>
+                <rect x="22" y="36" width="140" height="92" fill="#0d0619" opacity="0.5"/>
+
+                <rect x="14" y="22" width="152" height="96" fill="#8a6a44"/>
+                <rect x="14" y="22" width="152" height="6" fill="#6d5235"/>
+                <rect x="14" y="22" width="6" height="96" fill="#6d5235"/>
+                <rect x="160" y="22" width="6" height="96" fill="#6d5235"/>
+
+                <g class="letter-paper">
+                    <rect x="26" y="14" width="128" height="24" fill="#fbf5e8"/>
+                    <rect x="30" y="18" width="4" height="2" fill="#e8dfc9"/>
+                    <rect x="50" y="22" width="6" height="2" fill="#e8dfc9"/>
+                    <rect x="90" y="16" width="4" height="2" fill="#e8dfc9"/>
+                    <rect x="120" y="20" width="8" height="2" fill="#e8dfc9"/>
+                    <rect x="140" y="24" width="4" height="2" fill="#e8dfc9"/>
+                    <rect x="26" y="30" width="128" height="6" fill="#d4c9b0" opacity="0.7"/>
+                    <rect x="26" y="14" width="128" height="2" fill="#c9bda0"/>
+                    <rect x="26" y="14" width="2" height="24" fill="#c9bda0"/>
+                    <rect x="152" y="14" width="2" height="24" fill="#c9bda0"/>
+                    <rect x="34" y="20" width="30" height="2" fill="#c9bda0" opacity="0.5"/>
+                    <rect x="34" y="26" width="50" height="2" fill="#c9bda0" opacity="0.5"/>
+                    <rect x="100" y="20" width="40" height="2" fill="#c9bda0" opacity="0.5"/>
+                    <rect x="100" y="26" width="35" height="2" fill="#c9bda0" opacity="0.5"/>
+                </g>
+
+                <rect x="14" y="30" width="152" height="92" fill="#f5e3bd"/>
+
+                <rect x="24" y="42" width="2" height="2" fill="#fcefce"/>
+                <rect x="38" y="54" width="2" height="2" fill="#fcefce"/>
+                <rect x="58" y="46" width="2" height="2" fill="#fcefce"/>
+                <rect x="82" y="58" width="2" height="2" fill="#fcefce"/>
+                <rect x="106" y="42" width="2" height="2" fill="#fcefce"/>
+                <rect x="124" y="66" width="2" height="2" fill="#fcefce"/>
+                <rect x="144" y="50" width="2" height="2" fill="#fcefce"/>
+                <rect x="34" y="82" width="2" height="2" fill="#fcefce"/>
+                <rect x="68" y="94" width="2" height="2" fill="#fcefce"/>
+                <rect x="98" y="86" width="2" height="2" fill="#fcefce"/>
+                <rect x="130" y="98" width="2" height="2" fill="#fcefce"/>
+                <rect x="150" y="82" width="2" height="2" fill="#fcefce"/>
+
+                <rect x="46" y="38" width="2" height="2" fill="#e6d4a8"/>
+                <rect x="72" y="48" width="2" height="2" fill="#e6d4a8"/>
+                <rect x="118" y="56" width="2" height="2" fill="#e6d4a8"/>
+                <rect x="92" y="74" width="2" height="2" fill="#e6d4a8"/>
+                <rect x="56" y="88" width="2" height="2" fill="#e6d4a8"/>
+                <rect x="138" y="90" width="2" height="2" fill="#e6d4a8"/>
+
+                <polygon points="14,30 14,122 90,76" fill="#e8d3a4"/>
+                <polygon points="14,30 14,50 44,38" fill="#f4e2b8"/>
+                <polygon points="46,60 90,76 14,90 14,78" fill="#d8c192" opacity="0.6"/>
+                <rect x="18" y="34" width="2" height="2" fill="#fcefce"/>
+                <rect x="22" y="44" width="2" height="2" fill="#fcefce"/>
+                <rect x="26" y="54" width="2" height="2" fill="#fcefce"/>
+                <rect x="30" y="64" width="2" height="2" fill="#fcefce"/>
+                <rect x="24" y="80" width="2" height="2" fill="#d8c192"/>
+                <rect x="32" y="90" width="2" height="2" fill="#d8c192"/>
+
+                <polygon points="166,30 166,122 90,76" fill="#e8d3a4"/>
+                <polygon points="166,30 166,50 136,38" fill="#f4e2b8"/>
+                <polygon points="134,60 90,76 166,90 166,78" fill="#d8c192" opacity="0.6"/>
+                <rect x="160" y="34" width="2" height="2" fill="#fcefce"/>
+                <rect x="156" y="44" width="2" height="2" fill="#fcefce"/>
+                <rect x="152" y="54" width="2" height="2" fill="#fcefce"/>
+                <rect x="148" y="64" width="2" height="2" fill="#fcefce"/>
+                <rect x="154" y="80" width="2" height="2" fill="#d8c192"/>
+                <rect x="146" y="90" width="2" height="2" fill="#d8c192"/>
+
+                <line x1="14" y1="30" x2="90" y2="76" stroke="#c2a878" stroke-width="1"/>
+                <line x1="166" y1="30" x2="90" y2="76" stroke="#c2a878" stroke-width="1"/>
+
+                <polygon points="14,122 90,72 166,122" fill="#f0dcaa"/>
+                <polygon points="14,122 90,72 70,100" fill="#f8e8c0" opacity="0.7"/>
+                <polygon points="110,100 90,72 166,122" fill="#d8c192" opacity="0.5"/>
+                <polygon points="14,122 90,72 166,122" fill="none" stroke="#c2a878" stroke-width="2"/>
+                <rect x="30" y="116" width="2" height="2" fill="#fcefce"/>
+                <rect x="50" y="108" width="2" height="2" fill="#fcefce"/>
+                <rect x="70" y="98" width="2" height="2" fill="#fcefce"/>
+                <rect x="110" y="98" width="2" height="2" fill="#fcefce"/>
+                <rect x="130" y="108" width="2" height="2" fill="#fcefce"/>
+                <rect x="148" y="116" width="2" height="2" fill="#fcefce"/>
+
+                <g class="top-flap">
+                    <polygon points="14,30 166,30 90,76" fill="#f8ebc8"/>
+                    <polygon points="14,30 90,30 50,50" fill="#fdf3d8" opacity="0.8"/>
+                    <polygon points="90,76 130,50 166,30 130,30 110,58" fill="#e0cd9c" opacity="0.6"/>
+                    <polygon points="14,30 166,30 90,76" fill="none" stroke="#c2a878" stroke-width="2"/>
+                    <rect x="26" y="34" width="4" height="2" fill="#fdf3d8"/>
+                    <rect x="46" y="42" width="4" height="2" fill="#fdf3d8"/>
+                    <rect x="66" y="50" width="4" height="2" fill="#fdf3d8"/>
+                    <rect x="110" y="50" width="4" height="2" fill="#e0cd9c"/>
+                    <rect x="130" y="42" width="4" height="2" fill="#e0cd9c"/>
+                    <rect x="150" y="34" width="4" height="2" fill="#e0cd9c"/>
+                    <rect x="16" y="28" width="8" height="2" fill="#c2a878"/>
+                    <rect x="32" y="28" width="8" height="2" fill="#c2a878"/>
+                    <rect x="48" y="28" width="8" height="2" fill="#c2a878"/>
+                    <rect x="64" y="28" width="8" height="2" fill="#c2a878"/>
+                    <rect x="80" y="28" width="8" height="2" fill="#c2a878"/>
+                    <rect x="96" y="28" width="8" height="2" fill="#c2a878"/>
+                    <rect x="112" y="28" width="8" height="2" fill="#c2a878"/>
+                    <rect x="128" y="28" width="8" height="2" fill="#c2a878"/>
+                    <rect x="144" y="28" width="8" height="2" fill="#c2a878"/>
+                    <rect x="158" y="28" width="8" height="2" fill="#c2a878"/>
+                </g>
+
+                <rect x="89" y="76" width="2" height="4" fill="#d8c192" opacity="0.5"/>
+                <rect x="89" y="84" width="2" height="4" fill="#d8c192" opacity="0.5"/>
+                <rect x="89" y="92" width="2" height="4" fill="#d8c192" opacity="0.5"/>
+                <rect x="89" y="100" width="2" height="4" fill="#d8c192" opacity="0.5"/>
+                <rect x="89" y="108" width="2" height="4" fill="#d8c192" opacity="0.5"/>
+                <rect x="89" y="116" width="2" height="4" fill="#d8c192" opacity="0.5"/>
+
+                <g class="heart-seal">
+                    <g opacity="0.4" transform="translate(2, 2)">
+                        <rect x="76" y="52" width="4" height="4" fill="#000"/>
+                        <rect x="88" y="52" width="4" height="4" fill="#000"/>
+                        <rect x="72" y="56" width="4" height="4" fill="#000"/>
+                        <rect x="76" y="56" width="4" height="4" fill="#000"/>
+                        <rect x="80" y="56" width="4" height="4" fill="#000"/>
+                        <rect x="84" y="56" width="4" height="4" fill="#000"/>
+                        <rect x="88" y="56" width="4" height="4" fill="#000"/>
+                        <rect x="72" y="60" width="4" height="4" fill="#000"/>
+                        <rect x="76" y="60" width="4" height="4" fill="#000"/>
+                        <rect x="80" y="60" width="4" height="4" fill="#000"/>
+                        <rect x="84" y="60" width="4" height="4" fill="#000"/>
+                        <rect x="88" y="60" width="4" height="4" fill="#000"/>
+                        <rect x="76" y="64" width="4" height="4" fill="#000"/>
+                        <rect x="80" y="64" width="4" height="4" fill="#000"/>
+                        <rect x="84" y="64" width="4" height="4" fill="#000"/>
+                        <rect x="80" y="68" width="4" height="4" fill="#000"/>
+                    </g>
+                    <rect x="76" y="52" width="4" height="4" fill="#e63946"/>
+                    <rect x="88" y="52" width="4" height="4" fill="#e63946"/>
+                    <rect x="72" y="56" width="4" height="4" fill="#e63946"/>
+                    <rect x="76" y="56" width="4" height="4" fill="#e63946"/>
+                    <rect x="80" y="56" width="4" height="4" fill="#e63946"/>
+                    <rect x="84" y="56" width="4" height="4" fill="#e63946"/>
+                    <rect x="88" y="56" width="4" height="4" fill="#e63946"/>
+                    <rect x="72" y="60" width="4" height="4" fill="#e63946"/>
+                    <rect x="76" y="60" width="4" height="4" fill="#e63946"/>
+                    <rect x="80" y="60" width="4" height="4" fill="#e63946"/>
+                    <rect x="84" y="60" width="4" height="4" fill="#e63946"/>
+                    <rect x="88" y="60" width="4" height="4" fill="#e63946"/>
+                    <rect x="76" y="64" width="4" height="4" fill="#e63946"/>
+                    <rect x="80" y="64" width="4" height="4" fill="#e63946"/>
+                    <rect x="84" y="64" width="4" height="4" fill="#e63946"/>
+                    <rect x="80" y="68" width="4" height="4" fill="#e63946"/>
+
+                    <rect x="76" y="56" width="4" height="4" fill="#ff9aa5"/>
+                    <rect x="80" y="56" width="4" height="4" fill="#ff9aa5"/>
+                    <rect x="76" y="60" width="4" height="4" fill="#ffb8c0"/>
+                    <rect x="88" y="60" width="4" height="4" fill="#a8202c"/>
+                    <rect x="84" y="64" width="4" height="4" fill="#a8202c"/>
+                    <rect x="80" y="68" width="4" height="4" fill="#a8202c"/>
+                    <rect x="76" y="56" width="2" height="2" fill="#ffffff" opacity="0.9"/>
+                </g>
+
+                <rect x="14" y="30" width="152" height="2" fill="#a8885e"/>
+                <rect x="14" y="120" width="152" height="2" fill="#a8885e"/>
+                <rect x="14" y="30" width="2" height="92" fill="#a8885e"/>
+                <rect x="164" y="30" width="2" height="92" fill="#a8885e"/>
+
+                <rect x="6" y="12" width="2" height="8" fill="#fff5c2"/>
+                <rect x="2" y="16" width="10" height="2" fill="#fff5c2"/>
+                <rect x="4" y="14" width="2" height="2" fill="#ffffff"/>
+                <rect x="8" y="18" width="2" height="2" fill="#ffffff"/>
+                <rect x="170" y="10" width="2" height="6" fill="#fff5c2"/>
+                <rect x="166" y="13" width="10" height="2" fill="#fff5c2"/>
+                <rect x="168" y="11" width="2" height="2" fill="#ffffff"/>
+                <rect x="4" y="126" width="2" height="6" fill="#fff5c2"/>
+                <rect x="1" y="128" width="8" height="2" fill="#fff5c2"/>
+                <rect x="172" y="124" width="2" height="6" fill="#fff5c2"/>
+                <rect x="169" y="126" width="8" height="2" fill="#fff5c2"/>
+                <rect x="0" y="70" width="2" height="2" fill="#fff5c2"/>
+                <rect x="178" y="60" width="2" height="2" fill="#fff5c2"/>
+                <rect x="176" y="100" width="2" height="2" fill="#fff5c2"/>
+                <rect x="2" y="100" width="2" height="2" fill="#fff5c2"/>
+            </svg>
+        </div>
+
+        <div class="message" id="hintMessage">
+            Вам письмо,<br>открой его
+        </div>
+    </div>
+
+    <!-- ЭКРАН 2: ПИСЬМО -->
+    <div class="letter-screen" id="letterScreen">
+        <div class="letter-frame" id="letterFrame">
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="letter-text" id="letterText"></div>
+            <span class="cursor" id="cursor"></span>
+        </div>
+        <button class="back-btn" id="backBtn">Закрыть письмо</button>
+    </div>
+
+    <!-- ОВЕРЛЕЙ ОБРАТНОГО ОТСЧЁТА -->
+    <div class="countdown-overlay" id="countdownOverlay">
+        <div class="countdown-text">
+            <div>ПИСЬМО САМОУНИЧТОЖИТСЯ</div>
+            <div>ЧЕРЕЗ</div>
+            <div class="countdown-number" id="countdownNumber">3</div>
+        </div>
+    </div>
+
+    <!-- ЧАСТИЦЫ РАСТВОРЕНИЯ -->
+    <div class="dissolve-particles" id="dissolveParticles"></div>
+
+    <script>
+        // ============================================
+        // ЭЛЕМЕНТЫ
+        // ============================================
+        const envelopeScreen = document.getElementById('envelopeScreen');
+        const letterScreen = document.getElementById('letterScreen');
+        const envelopeContainer = document.getElementById('envelopeContainer');
+        const hintMessage = document.getElementById('hintMessage');
+        const letterText = document.getElementById('letterText');
+        const cursor = document.getElementById('cursor');
+        const backBtn = document.getElementById('backBtn');
+        const soundToggle = document.getElementById('soundToggle');
+        const countdownOverlay = document.getElementById('countdownOverlay');
+        const countdownNumber = document.getElementById('countdownNumber');
+        const dissolveParticles = document.getElementById('dissolveParticles');
+        const letterFrame = document.getElementById('letterFrame');
+
+        // ============================================
+        // ТЕКСТ ПИСЬМА
+        // ============================================
+        const letterContent = `Привет, Дан да Данчик.
+
+Я решил тебе написать это
+письмо.. просто так.
+Нравишься мне и греешь
+душу.
+
+Я рад, что ты у меня есть:
+такая хорошенькая,
+миленькая и добрая.
+
+Пусть глазик проходит,
+солнце светит и жизнь
+радует красками)
+
+С любовью, Я ♥`;
+
+        // ============================================
+        // ЗВУКОВАЯ СИСТЕМА
+        // ============================================
+        let audioContext = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playPixelBeep() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioContext) return;
+
+            const now = audioContext.currentTime;
+            const oscillator = audioContext.createOscillator();
+            oscillator.type = 'square';
+            const baseFreq = 800 + Math.random() * 400;
+            oscillator.frequency.setValueAtTime(baseFreq, now);
+
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(0.06, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(3000, now);
+
+            oscillator.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.start(now);
+            oscillator.stop(now + 0.04);
+        }
+
+        function playOpenSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioContext) return;
+
+            const now = audioContext.currentTime;
+
+            const osc1 = audioContext.createOscillator();
+            osc1.type = 'square';
+            osc1.frequency.setValueAtTime(220, now);
+            osc1.frequency.exponentialRampToValueAtTime(440, now + 0.3);
+
+            const gain1 = audioContext.createGain();
+            gain1.gain.setValueAtTime(0.08, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+            osc1.connect(gain1);
+            gain1.connect(audioContext.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.4);
+
+            const osc2 = audioContext.createOscillator();
+            osc2.type = 'square';
+            osc2.frequency.setValueAtTime(440, now + 0.15);
+            osc2.frequency.exponentialRampToValueAtTime(880, now + 0.4);
+
+            const gain2 = audioContext.createGain();
+            gain2.gain.setValueAtTime(0.001, now + 0.15);
+            gain2.gain.linearRampToValueAtTime(0.06, now + 0.2);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+            osc2.connect(gain2);
+            gain2.connect(audioContext.destination);
+            osc2.start(now + 0.15);
+            osc2.stop(now + 0.55);
+        }
+
+        function playCompleteSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioContext) return;
+
+            const now = audioContext.currentTime;
+            const notes = [523.25, 659.25, 783.99];
+
+            notes.forEach((freq, i) => {
+                const osc = audioContext.createOscillator();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(freq, now + i * 0.08);
+
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.05, now + i * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.4);
+
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.start(now + i * 0.08);
+                osc.stop(now + i * 0.08 + 0.45);
+            });
+        }
+
+        function playCountdownBeep() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioContext) return;
+
+            const now = audioContext.currentTime;
+            const osc = audioContext.createOscillator();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(1200, now);
+            osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+
+            const gain = audioContext.createGain();
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(2500, now);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start(now);
+            osc.stop(now + 0.22);
+        }
+
+        function playDissolveSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioContext) return;
+
+            const now = audioContext.currentTime;
+
+            const bufferSize = audioContext.sampleRate * 1.2;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+            }
+
+            const noise = audioContext.createBufferSource();
+            noise.buffer = buffer;
+
+            const noiseGain = audioContext.createGain();
+            noiseGain.gain.setValueAtTime(0.12, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+            const noiseFilter = audioContext.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.setValueAtTime(3000, now);
+            noiseFilter.frequency.exponentialRampToValueAtTime(200, now + 1.2);
+
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioContext.destination);
+            noise.start(now);
+            noise.stop(now + 1.2);
+
+            const osc = audioContext.createOscillator();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(40, now + 1.0);
+
+            const oscGain = audioContext.createGain();
+            oscGain.gain.setValueAtTime(0.08, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+            osc.connect(oscGain);
+            oscGain.connect(audioContext.destination);
+            osc.start(now);
+            osc.stop(now + 1.2);
+        }
+
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundToggle.classList.toggle('muted', !soundEnabled);
+            soundToggle.textContent = soundEnabled ? '♪' : '✕';
+            if (soundEnabled) {
+                initAudio();
+                playPixelBeep();
+            }
+        });
+
+        // ============================================
+        // СОСТОЯНИЕ
+        // ============================================
+        let isOpening = false;
+        let typingInterval = null;
+        let isDissolving = false;
+        let isDestroyed = false;
+
+        // ============================================
+        // ОТКРЫТИЕ КОНВЕРТА
+        // ============================================
+        envelopeContainer.addEventListener('click', openEnvelope);
+
+        function openEnvelope() {
+            if (isOpening || isDissolving || isDestroyed) return;
+            isOpening = true;
+
+            initAudio();
+            playOpenSound();
+
+            envelopeContainer.classList.add('opening');
+
+            hintMessage.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            hintMessage.style.opacity = '0';
+            hintMessage.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                envelopeScreen.classList.add('hidden');
+                letterScreen.classList.add('visible');
+
+                setTimeout(() => {
+                    typeLetter();
+                }, 400);
+            }, 1200);
+        }
+
+        // ============================================
+        // ПЕЧАТАЮЩИЙСЯ ТЕКСТ
+        // ============================================
+        function typeLetter() {
+            letterText.textContent = '';
+            let index = 0;
+            const speed = 55;
+
+            typingInterval = setInterval(() => {
+                if (index < letterContent.length) {
+                    const char = letterContent[index];
+                    letterText.textContent += char;
+                    index++;
+
+                    if (char !== ' ' && char !== '\n' && char !== '\t') {
+                        playPixelBeep();
+                    }
+                } else {
+                    clearInterval(typingInterval);
+                    typingInterval = null;
+
+                    playCompleteSound();
+
+                    setTimeout(() => {
+                        cursor.classList.add('hidden');
+                    }, 800);
+
+                    backBtn.classList.add('visible');
+                }
+            }, speed);
+        }
+
+        // ============================================
+        // УНИЧТОЖЕНИЕ ПИСЬМА (ОБРАТНЫЙ ОТСЧЁТ + РАСТВОРЕНИЕ)
+        // ============================================
+        backBtn.addEventListener('click', startSelfDestruct);
+
+        function startSelfDestruct() {
+            if (isDissolving) return;
+            isDissolving = true;
+
+            backBtn.classList.remove('visible');
+
+            countdownOverlay.classList.add('visible');
+
+            let count = 3;
+            countdownNumber.textContent = count;
+            playCountdownBeep();
+
+            const countdownInterval = setInterval(() => {
+                count--;
+
+                if (count > 0) {
+                    countdownNumber.textContent = count;
+                    playCountdownBeep();
+
+                    countdownNumber.style.animation = 'none';
+                    void countdownNumber.offsetWidth;
+                    countdownNumber.style.animation = 'countdownPulse 1s ease-in-out infinite';
+                } else if (count === 0) {
+                    countdownNumber.textContent = '0';
+                    playCountdownBeep();
+
+                    setTimeout(() => {
+                        clearInterval(countdownInterval);
+                        countdownOverlay.classList.remove('visible');
+                        startDissolve();
+                    }, 400);
+                }
+            }, 1000);
+        }
+
+        function startDissolve() {
+            playDissolveSound();
+            createDissolveParticles();
+
+            letterScreen.classList.add('dissolving');
+            document.body.style.animation = 'shake 0.5s ease-in-out';
+
+            setTimeout(() => {
+                document.body.style.animation = '';
+
+                letterScreen.classList.remove('dissolving');
+                letterScreen.classList.add('destroyed');
+
+                dissolveParticles.innerHTML = '';
+                letterText.textContent = '';
+                cursor.classList.add('hidden');
+
+                isDissolving = false;
+                isDestroyed = true;
+            }, 1800);
+        }
+
+        // ============================================
+        // СОЗДАНИЕ ПИКСЕЛЬНЫХ ЧАСТИЦ
+        // ============================================
+        function createDissolveParticles() {
+            dissolveParticles.innerHTML = '';
+
+            const frameRect = letterFrame.getBoundingClientRect();
+            const colors = ['#e63946', '#a8202c', '#ffe9a7', '#fbf3dc', '#8a6a44', '#3d2a4f'];
+            const particleCount = 120;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+
+                const x = frameRect.left + Math.random() * frameRect.width;
+                const y = frameRect.top + Math.random() * frameRect.height;
+
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const sizes = [4, 8, 12];
+                const size = sizes[Math.floor(Math.random() * sizes.length)];
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 100 + Math.random() * 300;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance - 50;
+
+                const delay = Math.random() * 0.4;
+
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.backgroundColor = color;
+                particle.style.opacity = '1';
+                particle.style.transform = 'translate(0, 0)';
+                particle.style.transition = `transform 1.4s cubic-bezier(0.2, 0.8, 0.4, 1) ${delay}s, opacity 1.4s ease ${delay}s`;
+
+                dissolveParticles.appendChild(particle);
+
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        particle.style.transform = `translate(${tx}px, ${ty}px) rotate(${Math.random() * 720}deg)`;
+                        particle.style.opacity = '0';
+                    });
+                });
+            }
+        }
+
+        // ============================================
+        // РАЗБЛОКИРОВКА ЗВУКА
+        // ============================================
+        document.addEventListener('click', () => {
+            initAudio();
+        }, { once: true });
+
+        // ============================================
+        // АНИМАЦИЯ ТРЯСКИ ЭКРАНА
+        // ============================================
+        const shakeStyle = document.createElement('style');
+        shakeStyle.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translate(0, 0) rotate(0deg); }
+                10% { transform: translate(-4px, 2px) rotate(-0.5deg); }
+                20% { transform: translate(4px, -2px) rotate(0.5deg); }
+                30% { transform: translate(-4px, -2px) rotate(-0.3deg); }
+                40% { transform: translate(4px, 2px) rotate(0.3deg); }
+                50% { transform: translate(-3px, 1px) rotate(-0.4deg); }
+                60% { transform: translate(3px, -1px) rotate(0.4deg); }
+                70% { transform: translate(-2px, 2px) rotate(-0.2deg); }
+                80% { transform: translate(2px, -2px) rotate(0.2deg); }
+                90% { transform: translate(-1px, 1px) rotate(0deg); }
+            }
+        `;
+        document.head.appendChild(shakeStyle);
+    </script>
 </body>
 </html>
