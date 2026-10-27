@@ -1,1218 +1,1332 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пиксельное письмо 💌</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Reef — пиксельный аквариум</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 8px;
+    background: radial-gradient(ellipse at 50% 0%, #1d4265 0%, #101b35 48%, #080d1d 100%);
+    color: #d8f7ff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    user-select: none;
+  }
+  .app { width: 100%; max-width: 1120px; }
+  header { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .eyebrow { color: #77e6db; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; }
+  h1 { margin-top: 2px; font-size: clamp(18px, 4vw, 38px); letter-spacing: -.06em; line-height: 1; font-weight: bold; }
+  h1 span { color: #70e9dc; }
+  .subtitle { margin-top: 4px; font-size: 10px; color: #9abbd1; }
+  .status { display: flex; align-items: center; gap: 4px; color: #a9d5e7; font-size: 9px; white-space: nowrap; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #6fffc4; box-shadow: 0 0 12px #6fffc4; }
+  .tank-shell {
+    padding: 6px;
+    border: 1px solid #47718b;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #527e99, #172d49 32%, #0b1830 70%, #4a7890);
+    box-shadow: 0 24px 70px #0008, inset 0 0 0 2px #071326;
+  }
+  .tank {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #07172a;
+    background: #07334c;
+    aspect-ratio: 16 / 9;
+    min-height: 200px;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    cursor: none;
+  }
+  .glass-glint {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(112deg, #ffffff0b 0%, transparent 23%, transparent 72%, #b8f4ff0b 100%);
+    box-shadow: inset 0 0 24px #020e24a8;
+  }
+  .tank-label {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 4px 6px;
+    background: #06172c99;
+    border: 1px solid #8bd4e333;
+    font-size: 8px;
+    letter-spacing: .12em;
+    color: #a8eaf1;
+    pointer-events: none;
+  }
+  .tank-label span { color: #6fffc4; }
+  .hint {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    max-width: 140px;
+    padding: 4px 8px;
+    background: #06172ccc;
+    border: 1px solid #8bd4e333;
+    border-radius: 4px;
+    font-size: 8px;
+    color: #c5e8ef;
+    line-height: 1.4;
+    pointer-events: none;
+  }
+  .quest-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 10;
+    animation: fadeIn 0.5s ease-out;
+  }
+  .quest-box {
+    background: #06172cee;
+    border: 2px solid #8bd4e355;
+    border-radius: 8px;
+    padding: 12px 16px;
+    max-width: 280px;
+    text-align: center;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .quest-text { font-size: 11px; color: #ffd4e4; line-height: 1.5; }
+  .quest-hint { font-size: 9px; color: #6f95ad; margin-top: 8px; }
+  .progress-dots {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    pointer-events: none;
+  }
+  .progress-dots span { font-size: 8px; color: #6f95ad; margin-right: 4px; }
+  .progress-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #44617a;
+    transition: all 0.3s;
+  }
+  .progress-dot.active { background: #6fffc4; box-shadow: 0 0 4px #6fffc4; }
+  .night-hint {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-size: 8px;
+    color: #6f95ad;
+    pointer-events: none;
+  }
+  .tools {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  button {
+    font: inherit;
+    font-size: 12px;
+    color: #d9f7ff;
+    background: linear-gradient(#173a58, #10263f);
+    border: 1px solid #416b87;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  button:hover { border-color: #86e9ec; background: linear-gradient(#205170, #14314e); }
+  button:active { transform: translateY(1px); }
+  button.active-sponge { border-color: #f0c84a; background: #f0c84a22; color: #ffe88a; }
+  button.active-net { border-color: #a9f5ff; background: #a9f5ff22; color: #c5f8ff; }
+  button.active-feed { border-color: #ffe27a; background: #ffe27a22; color: #fff6ad; }
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 8px;
+    color: #6f95ad;
+    line-height: 1.5;
+    flex-wrap: wrap;
+  }
+  .footer b { color: #a3d9e5; font-weight: 500; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  .gift-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+  .gift-overlay.show { display: flex; }
+  .gift-content {
+    position: relative;
+    animation: giftPop 0.5s ease-out;
+  }
+  .gift-box {
+    font-size: 64px;
+    cursor: pointer;
+    animation: float 2s ease-in-out infinite;
+  }
+  .gift-hint {
+    position: absolute;
+    top: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 14px;
+    color: #f9a8d4;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .gift-card {
+    position: relative;
+    background: linear-gradient(to bottom right, rgba(131, 24, 67, 0.9), rgba(88, 28, 135, 0.9));
+    border: 2px solid #f472b6;
+    border-radius: 8px;
+    padding: 32px;
+    max-width: 448px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+  .sparkle {
+    position: absolute;
+    font-size: 24px;
+    animation: sparkle 1.5s ease-in-out infinite;
+  }
+  .sparkle:nth-child(1) { top: -16px; left: -16px; }
+  .sparkle:nth-child(2) { top: -16px; right: -16px; animation-delay: 0.5s; }
+  .sparkle:nth-child(3) { bottom: -16px; left: -16px; animation-delay: 1s; }
+  .sparkle:nth-child(4) { bottom: -16px; right: -16px; animation-delay: 1.5s; }
+  .gift-emoji { font-size: 48px; margin-bottom: 16px; animation: float 2s ease-in-out infinite; }
+  .gift-title { font-size: 24px; font-weight: bold; color: #fce7f3; margin-bottom: 12px; }
+  .gift-text { color: #fce7f3; margin-bottom: 24px; font-size: 14px; line-height: 1.6; }
+  .gift-text br { margin-bottom: 8px; }
+  .achievement {
+    background: linear-gradient(to right, rgba(31, 41, 55, 0.9), rgba(17, 24, 39, 0.9));
+    border: 1px solid rgba(234, 179, 8, 0.5);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .achievement-icon { font-size: 36px; }
+  .achievement-label { color: #facc15; font-size: 12px; margin-bottom: 4px; }
+  .achievement-title { color: white; font-weight: bold; font-size: 14px; }
+  .achievement-desc { color: #9ca3af; font-size: 12px; }
+  .close-btn {
+    padding: 8px 24px;
+    background: #ec4899;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .close-btn:hover { background: #db2777; }
 
-        body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: #1a0f2e;
-            font-family: 'Press Start 2P', cursive;
-            overflow: hidden;
-            padding: 1rem;
-            background-image:
-                radial-gradient(circle at 50% 40%, rgba(230, 57, 70, 0.12) 0%, transparent 55%),
-                radial-gradient(circle at 50% 60%, rgba(180, 138, 214, 0.08) 0%, transparent 60%),
-                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 16px 16px, 16px 16px;
-        }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes giftPop {
+    from { opacity: 0; transform: translateY(10px) scale(0.94); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes sparkle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
 
-        .screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-
-        .screen.hidden {
-            opacity: 0;
-            transform: scale(0.85);
-            pointer-events: none;
-            position: absolute;
-        }
-
-        /* ============================================ */
-        /* КОНВЕРТ                                       */
-        /* ============================================ */
-        .envelope-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 3rem;
-            position: relative;
-            animation: float 4s ease-in-out infinite;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .envelope-container:hover {
-            transform: scale(1.05);
-        }
-
-        .envelope-container:active {
-            transform: scale(0.98);
-        }
-
-        .envelope-container::before {
-            content: '';
-            position: absolute;
-            bottom: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 32px;
-            background: radial-gradient(ellipse at center, rgba(230, 57, 70, 0.5) 0%, rgba(230, 57, 70, 0.15) 40%, transparent 75%);
-            filter: blur(10px);
-            z-index: -1;
-            transition: opacity 0.5s ease;
-        }
-
-        .envelope-container.opening::before {
-            opacity: 0;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            25% { transform: translateY(-6px) rotate(-0.5deg); }
-            50% { transform: translateY(-12px) rotate(0deg); }
-            75% { transform: translateY(-6px) rotate(0.5deg); }
-        }
-
-        .pixel-envelope {
-            width: 448px;
-            height: 336px;
-            display: block;
-            shape-rendering: crispEdges;
-            animation: glow 3.5s ease-in-out infinite;
-            overflow: visible;
-        }
-
-        @keyframes glow {
-            0%, 100% {
-                filter: drop-shadow(0 12px 0 rgba(0, 0, 0, 0.4))
-                        drop-shadow(0 0 15px rgba(230, 57, 70, 0.35))
-                        drop-shadow(0 0 30px rgba(230, 57, 70, 0.15));
-            }
-            50% {
-                filter: drop-shadow(0 12px 0 rgba(0, 0, 0, 0.4))
-                        drop-shadow(0 0 25px rgba(230, 57, 70, 0.65))
-                        drop-shadow(0 0 50px rgba(230, 57, 70, 0.3));
-            }
-        }
-
-        .top-flap {
-            transform-origin: 90px 30px;
-            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .envelope-container.opening .top-flap {
-            transform: rotateX(180deg) translateY(-4px);
-        }
-
-        .letter-paper {
-            transform-origin: center bottom;
-            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
-        }
-
-        .envelope-container.opening .letter-paper {
-            transform: translateY(-28px);
-        }
-
-        .heart-seal {
-            transition: opacity 0.3s ease, transform 0.5s ease;
-        }
-
-        .envelope-container.opening .heart-seal {
-            opacity: 0;
-            transform: translateY(-10px) scale(0.5);
-        }
-
-        .message {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 1.2rem;
-            color: #ffe9a7;
-            text-align: center;
-            line-height: 1.9;
-            letter-spacing: 2px;
-            text-shadow: 4px 4px 0 #4a2a5a, 6px 6px 0 rgba(0, 0, 0, 0.35);
-            background-color: #3d2a4f;
-            padding: 1.5rem 2.4rem;
-            border: 4px solid #b48ad6;
-            box-shadow:
-                inset -4px -4px 0 #2b1b3d,
-                inset 4px 4px 0 #d9b8ff,
-                0 0 25px rgba(180, 138, 214, 0.35),
-                0 8px 0 rgba(0, 0, 0, 0.3);
-            max-width: 90%;
-            word-break: break-word;
-            animation: blink 2.6s step-end infinite;
-            position: relative;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.92; }
-        }
-
-        /* ============================================ */
-        /* ПИСЬМО                                        */
-        /* ============================================ */
-        .letter-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            max-width: 700px;
-            opacity: 0;
-            transform: scale(0.9);
-            transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s;
-            pointer-events: none;
-            position: absolute;
-        }
-
-        .letter-screen.visible {
-            opacity: 1;
-            transform: scale(1);
-            pointer-events: auto;
-            position: relative;
-        }
-
-        .letter-screen.destroyed .letter-frame,
-        .letter-screen.destroyed .back-btn {
-            display: none;
-        }
-
-        .letter-frame {
-            position: relative;
-            background-color: #fbf3dc;
-            width: 100%;
-            max-width: 640px;
-            min-height: 380px;
-            padding: 2.5rem 2rem;
-            border: 4px solid #8a6a44;
-            box-shadow:
-                inset 4px 4px 0 #ffffff,
-                inset -4px -4px 0 #d8c192,
-                0 0 0 4px #a8885e,
-                0 0 0 8px #6d5235,
-                0 12px 0 rgba(0, 0, 0, 0.4),
-                0 0 40px rgba(230, 57, 70, 0.35);
-            background-image:
-                radial-gradient(circle at 20% 30%, rgba(200, 180, 140, 0.15) 1px, transparent 1px),
-                radial-gradient(circle at 70% 60%, rgba(200, 180, 140, 0.12) 1px, transparent 1px),
-                radial-gradient(circle at 40% 80%, rgba(200, 180, 140, 0.1) 1px, transparent 1px);
-            background-size: 30px 30px, 50px 50px, 40px 40px;
-            transition: all 0.4s ease;
-        }
-
-        .letter-frame::before,
-        .letter-frame::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border: 3px solid #a8202c;
-            transition: border-color 0.4s ease;
-        }
-
-        .letter-frame::before {
-            top: 8px;
-            left: 8px;
-            border-right: none;
-            border-bottom: none;
-        }
-
-        .letter-frame::after {
-            bottom: 8px;
-            right: 8px;
-            border-left: none;
-            border-top: none;
-        }
-
-        .corner {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border: 3px solid #a8202c;
-            transition: border-color 0.4s ease;
-        }
-
-        .corner.tr {
-            top: 8px;
-            right: 8px;
-            border-left: none;
-            border-bottom: none;
-        }
-
-        .corner.bl {
-            bottom: 8px;
-            left: 8px;
-            border-right: none;
-            border-top: none;
-        }
-
-        .letter-text {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 1rem;
-            color: #3d2a4f;
-            line-height: 2.2;
-            letter-spacing: 1px;
-            text-align: left;
-            white-space: pre-wrap;
-            word-break: break-word;
-            min-height: 200px;
-            transition: color 0.5s ease, opacity 0.5s ease;
-        }
-
-        .cursor {
-            display: inline-block;
-            width: 10px;
-            height: 16px;
-            background-color: #e63946;
-            margin-left: 4px;
-            vertical-align: middle;
-            animation: cursorBlink 0.8s step-end infinite;
-        }
-
-        @keyframes cursorBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        .cursor.hidden {
-            display: none;
-        }
-
-        /* ============================================ */
-        /* КНОПКА "ЗАКРЫТЬ ПИСЬМО"                       */
-        /* ============================================ */
-        .back-btn {
-            margin-top: 2rem;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.85rem;
-            color: #ffe9a7;
-            background-color: #3d2a4f;
-            border: 4px solid #b48ad6;
-            padding: 0.9rem 1.6rem;
-            cursor: pointer;
-            box-shadow:
-                inset -4px -4px 0 #2b1b3d,
-                inset 4px 4px 0 #d9b8ff,
-                0 6px 0 #1a0f2e;
-            transition: all 0.15s ease;
-            letter-spacing: 1px;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .back-btn.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                inset -4px -4px 0 #2b1b3d,
-                inset 4px 4px 0 #d9b8ff,
-                0 8px 0 #1a0f2e,
-                0 0 15px rgba(180, 138, 214, 0.5);
-        }
-
-        .back-btn:active {
-            transform: translateY(4px);
-            box-shadow:
-                inset -4px -4px 0 #2b1b3d,
-                inset 4px 4px 0 #d9b8ff,
-                0 2px 0 #1a0f2e;
-        }
-
-        /* ============================================ */
-        /* ОБРАТНЫЙ ОТСЧЁТ                                */
-        /* ============================================ */
-        .countdown-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(26, 15, 46, 0.85);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 500;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease;
-            backdrop-filter: blur(4px);
-        }
-
-        .countdown-overlay.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .countdown-text {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 1.4rem;
-            color: #ffe9a7;
-            text-align: center;
-            line-height: 2;
-            letter-spacing: 2px;
-            text-shadow:
-                4px 4px 0 #a8202c,
-                6px 6px 0 rgba(0, 0, 0, 0.5),
-                0 0 30px rgba(230, 57, 70, 0.8);
-            background-color: #3d2a4f;
-            padding: 2rem 2.5rem;
-            border: 4px solid #e63946;
-            box-shadow:
-                inset -4px -4px 0 #2b1b3d,
-                inset 4px 4px 0 #d9b8ff,
-                0 0 40px rgba(230, 57, 70, 0.6);
-            max-width: 90%;
-        }
-
-        .countdown-number {
-            display: inline-block;
-            font-size: 2.8rem;
-            color: #e63946;
-            text-shadow:
-                3px 3px 0 #ffe9a7,
-                6px 6px 0 rgba(0, 0, 0, 0.5);
-            animation: countdownPulse 1s ease-in-out infinite;
-        }
-
-        @keyframes countdownPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
-        /* ============================================ */
-        /* АНИМАЦИЯ РАСТВОРЕНИЯ ПИСЬМА                   */
-        /* ============================================ */
-        .letter-screen.dissolving .letter-frame {
-            animation: dissolveFrame 1.5s ease-in forwards;
-        }
-
-        .letter-screen.dissolving .letter-text {
-            animation: dissolveText 1.5s ease-in forwards;
-        }
-
-        .letter-screen.dissolving .back-btn {
-            animation: dissolveBtn 1s ease-in forwards;
-        }
-
-        @keyframes dissolveFrame {
-            0% {
-                filter: blur(0px) brightness(1);
-                transform: scale(1) rotate(0deg);
-                opacity: 1;
-            }
-            30% {
-                filter: blur(0px) brightness(1.3) hue-rotate(-20deg);
-                transform: scale(1.02) rotate(-1deg);
-                opacity: 1;
-            }
-            60% {
-                filter: blur(1px) brightness(0.7) hue-rotate(-30deg) saturate(0.5);
-                transform: scale(0.98) rotate(1deg);
-                opacity: 0.7;
-            }
-            100% {
-                filter: blur(8px) brightness(0.2) hue-rotate(-40deg) saturate(0);
-                transform: scale(0.85) rotate(-3deg);
-                opacity: 0;
-            }
-        }
-
-        @keyframes dissolveText {
-            0% {
-                color: #3d2a4f;
-                filter: blur(0px);
-                opacity: 1;
-            }
-            40% {
-                color: #a8202c;
-                filter: blur(0px);
-                opacity: 1;
-            }
-            100% {
-                color: #e63946;
-                filter: blur(6px);
-                opacity: 0;
-            }
-        }
-
-        @keyframes dissolveBtn {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.95); }
-            100% { opacity: 0; transform: scale(0.8); }
-        }
-
-        .dissolve-particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 400;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background-color: #e63946;
-            opacity: 0;
-        }
-
-        /* ============================================ */
-        /* КНОПКА ЗВУКА                                  */
-        /* ============================================ */
-        .sound-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 48px;
-            height: 48px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 1rem;
-            color: #ffe9a7;
-            background-color: #3d2a4f;
-            border: 4px solid #b48ad6;
-            cursor: pointer;
-            box-shadow:
-                inset -4px -4px 0 #2b1b3d,
-                inset 4px 4px 0 #d9b8ff,
-                0 5px 0 #1a0f2e;
-            transition: all 0.15s ease;
-            z-index: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sound-toggle:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                inset -4px -4px 0 #2b1b3d,
-                inset 4px 4px 0 #d9b8ff,
-                0 7px 0 #1a0f2e,
-                0 0 15px rgba(180, 138, 214, 0.5);
-        }
-
-        .sound-toggle:active {
-            transform: translateY(3px);
-            box-shadow:
-                inset -4px -4px 0 #2b1b3d,
-                inset 4px 4px 0 #d9b8ff,
-                0 2px 0 #1a0f2e;
-        }
-
-        .sound-toggle.muted {
-            opacity: 0.5;
-        }
-
-        @media (max-width: 520px) {
-            .pixel-envelope {
-                width: 300px;
-                height: 225px;
-            }
-            .message {
-                font-size: 0.85rem;
-                padding: 1rem 1.4rem;
-                letter-spacing: 1px;
-            }
-            .letter-frame {
-                padding: 1.8rem 1.2rem;
-                min-height: 320px;
-            }
-            .letter-text {
-                font-size: 0.7rem;
-                line-height: 2;
-            }
-            .back-btn {
-                font-size: 0.7rem;
-                padding: 0.7rem 1.2rem;
-            }
-            .sound-toggle {
-                width: 40px;
-                height: 40px;
-                font-size: 0.8rem;
-                top: 12px;
-                right: 12px;
-            }
-            .countdown-text {
-                font-size: 1rem;
-                padding: 1.5rem 1.5rem;
-            }
-            .countdown-number {
-                font-size: 2rem;
-            }
-        }
-    </style>
+  @media (min-width: 640px) {
+    body { padding: 16px; }
+    .eyebrow { font-size: 11px; }
+    .subtitle { font-size: 12px; }
+    .status { font-size: 11px; gap: 8px; }
+    .dot { width: 8px; height: 8px; }
+    .tank-shell { padding: 9px; }
+    .tank { min-height: 280px; }
+    .tank-label { top: 12px; left: 14px; padding: 6px 8px; font-size: 10px; }
+    .hint { top: 12px; right: 12px; max-width: 180px; padding: 6px 10px; font-size: 10px; }
+    .progress-dots { bottom: 8px; left: 12px; }
+    .night-hint { bottom: 8px; right: 12px; }
+    .tools { margin-top: 16px; gap: 12px; }
+    button { font-size: 14px; padding: 8px 16px; }
+    .footer { margin-top: 12px; font-size: 10px; }
+  }
+</style>
 </head>
 <body>
-    <button class="sound-toggle" id="soundToggle" title="Звук вкл/выкл">♪</button>
-
-    <!-- ЭКРАН 1: КОНВЕРТ -->
-    <div class="screen" id="envelopeScreen">
-        <div class="envelope-container" id="envelopeContainer">
-            <svg class="pixel-envelope" viewBox="0 0 180 135" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
-                <rect x="18" y="32" width="144" height="96" fill="#0d0619" opacity="0.7"/>
-                <rect x="22" y="36" width="140" height="92" fill="#0d0619" opacity="0.5"/>
-
-                <rect x="14" y="22" width="152" height="96" fill="#8a6a44"/>
-                <rect x="14" y="22" width="152" height="6" fill="#6d5235"/>
-                <rect x="14" y="22" width="6" height="96" fill="#6d5235"/>
-                <rect x="160" y="22" width="6" height="96" fill="#6d5235"/>
-
-                <g class="letter-paper">
-                    <rect x="26" y="14" width="128" height="24" fill="#fbf5e8"/>
-                    <rect x="30" y="18" width="4" height="2" fill="#e8dfc9"/>
-                    <rect x="50" y="22" width="6" height="2" fill="#e8dfc9"/>
-                    <rect x="90" y="16" width="4" height="2" fill="#e8dfc9"/>
-                    <rect x="120" y="20" width="8" height="2" fill="#e8dfc9"/>
-                    <rect x="140" y="24" width="4" height="2" fill="#e8dfc9"/>
-                    <rect x="26" y="30" width="128" height="6" fill="#d4c9b0" opacity="0.7"/>
-                    <rect x="26" y="14" width="128" height="2" fill="#c9bda0"/>
-                    <rect x="26" y="14" width="2" height="24" fill="#c9bda0"/>
-                    <rect x="152" y="14" width="2" height="24" fill="#c9bda0"/>
-                    <rect x="34" y="20" width="30" height="2" fill="#c9bda0" opacity="0.5"/>
-                    <rect x="34" y="26" width="50" height="2" fill="#c9bda0" opacity="0.5"/>
-                    <rect x="100" y="20" width="40" height="2" fill="#c9bda0" opacity="0.5"/>
-                    <rect x="100" y="26" width="35" height="2" fill="#c9bda0" opacity="0.5"/>
-                </g>
-
-                <rect x="14" y="30" width="152" height="92" fill="#f5e3bd"/>
-
-                <rect x="24" y="42" width="2" height="2" fill="#fcefce"/>
-                <rect x="38" y="54" width="2" height="2" fill="#fcefce"/>
-                <rect x="58" y="46" width="2" height="2" fill="#fcefce"/>
-                <rect x="82" y="58" width="2" height="2" fill="#fcefce"/>
-                <rect x="106" y="42" width="2" height="2" fill="#fcefce"/>
-                <rect x="124" y="66" width="2" height="2" fill="#fcefce"/>
-                <rect x="144" y="50" width="2" height="2" fill="#fcefce"/>
-                <rect x="34" y="82" width="2" height="2" fill="#fcefce"/>
-                <rect x="68" y="94" width="2" height="2" fill="#fcefce"/>
-                <rect x="98" y="86" width="2" height="2" fill="#fcefce"/>
-                <rect x="130" y="98" width="2" height="2" fill="#fcefce"/>
-                <rect x="150" y="82" width="2" height="2" fill="#fcefce"/>
-
-                <rect x="46" y="38" width="2" height="2" fill="#e6d4a8"/>
-                <rect x="72" y="48" width="2" height="2" fill="#e6d4a8"/>
-                <rect x="118" y="56" width="2" height="2" fill="#e6d4a8"/>
-                <rect x="92" y="74" width="2" height="2" fill="#e6d4a8"/>
-                <rect x="56" y="88" width="2" height="2" fill="#e6d4a8"/>
-                <rect x="138" y="90" width="2" height="2" fill="#e6d4a8"/>
-
-                <polygon points="14,30 14,122 90,76" fill="#e8d3a4"/>
-                <polygon points="14,30 14,50 44,38" fill="#f4e2b8"/>
-                <polygon points="46,60 90,76 14,90 14,78" fill="#d8c192" opacity="0.6"/>
-                <rect x="18" y="34" width="2" height="2" fill="#fcefce"/>
-                <rect x="22" y="44" width="2" height="2" fill="#fcefce"/>
-                <rect x="26" y="54" width="2" height="2" fill="#fcefce"/>
-                <rect x="30" y="64" width="2" height="2" fill="#fcefce"/>
-                <rect x="24" y="80" width="2" height="2" fill="#d8c192"/>
-                <rect x="32" y="90" width="2" height="2" fill="#d8c192"/>
-
-                <polygon points="166,30 166,122 90,76" fill="#e8d3a4"/>
-                <polygon points="166,30 166,50 136,38" fill="#f4e2b8"/>
-                <polygon points="134,60 90,76 166,90 166,78" fill="#d8c192" opacity="0.6"/>
-                <rect x="160" y="34" width="2" height="2" fill="#fcefce"/>
-                <rect x="156" y="44" width="2" height="2" fill="#fcefce"/>
-                <rect x="152" y="54" width="2" height="2" fill="#fcefce"/>
-                <rect x="148" y="64" width="2" height="2" fill="#fcefce"/>
-                <rect x="154" y="80" width="2" height="2" fill="#d8c192"/>
-                <rect x="146" y="90" width="2" height="2" fill="#d8c192"/>
-
-                <line x1="14" y1="30" x2="90" y2="76" stroke="#c2a878" stroke-width="1"/>
-                <line x1="166" y1="30" x2="90" y2="76" stroke="#c2a878" stroke-width="1"/>
-
-                <polygon points="14,122 90,72 166,122" fill="#f0dcaa"/>
-                <polygon points="14,122 90,72 70,100" fill="#f8e8c0" opacity="0.7"/>
-                <polygon points="110,100 90,72 166,122" fill="#d8c192" opacity="0.5"/>
-                <polygon points="14,122 90,72 166,122" fill="none" stroke="#c2a878" stroke-width="2"/>
-                <rect x="30" y="116" width="2" height="2" fill="#fcefce"/>
-                <rect x="50" y="108" width="2" height="2" fill="#fcefce"/>
-                <rect x="70" y="98" width="2" height="2" fill="#fcefce"/>
-                <rect x="110" y="98" width="2" height="2" fill="#fcefce"/>
-                <rect x="130" y="108" width="2" height="2" fill="#fcefce"/>
-                <rect x="148" y="116" width="2" height="2" fill="#fcefce"/>
-
-                <g class="top-flap">
-                    <polygon points="14,30 166,30 90,76" fill="#f8ebc8"/>
-                    <polygon points="14,30 90,30 50,50" fill="#fdf3d8" opacity="0.8"/>
-                    <polygon points="90,76 130,50 166,30 130,30 110,58" fill="#e0cd9c" opacity="0.6"/>
-                    <polygon points="14,30 166,30 90,76" fill="none" stroke="#c2a878" stroke-width="2"/>
-                    <rect x="26" y="34" width="4" height="2" fill="#fdf3d8"/>
-                    <rect x="46" y="42" width="4" height="2" fill="#fdf3d8"/>
-                    <rect x="66" y="50" width="4" height="2" fill="#fdf3d8"/>
-                    <rect x="110" y="50" width="4" height="2" fill="#e0cd9c"/>
-                    <rect x="130" y="42" width="4" height="2" fill="#e0cd9c"/>
-                    <rect x="150" y="34" width="4" height="2" fill="#e0cd9c"/>
-                    <rect x="16" y="28" width="8" height="2" fill="#c2a878"/>
-                    <rect x="32" y="28" width="8" height="2" fill="#c2a878"/>
-                    <rect x="48" y="28" width="8" height="2" fill="#c2a878"/>
-                    <rect x="64" y="28" width="8" height="2" fill="#c2a878"/>
-                    <rect x="80" y="28" width="8" height="2" fill="#c2a878"/>
-                    <rect x="96" y="28" width="8" height="2" fill="#c2a878"/>
-                    <rect x="112" y="28" width="8" height="2" fill="#c2a878"/>
-                    <rect x="128" y="28" width="8" height="2" fill="#c2a878"/>
-                    <rect x="144" y="28" width="8" height="2" fill="#c2a878"/>
-                    <rect x="158" y="28" width="8" height="2" fill="#c2a878"/>
-                </g>
-
-                <rect x="89" y="76" width="2" height="4" fill="#d8c192" opacity="0.5"/>
-                <rect x="89" y="84" width="2" height="4" fill="#d8c192" opacity="0.5"/>
-                <rect x="89" y="92" width="2" height="4" fill="#d8c192" opacity="0.5"/>
-                <rect x="89" y="100" width="2" height="4" fill="#d8c192" opacity="0.5"/>
-                <rect x="89" y="108" width="2" height="4" fill="#d8c192" opacity="0.5"/>
-                <rect x="89" y="116" width="2" height="4" fill="#d8c192" opacity="0.5"/>
-
-                <g class="heart-seal">
-                    <g opacity="0.4" transform="translate(2, 2)">
-                        <rect x="76" y="52" width="4" height="4" fill="#000"/>
-                        <rect x="88" y="52" width="4" height="4" fill="#000"/>
-                        <rect x="72" y="56" width="4" height="4" fill="#000"/>
-                        <rect x="76" y="56" width="4" height="4" fill="#000"/>
-                        <rect x="80" y="56" width="4" height="4" fill="#000"/>
-                        <rect x="84" y="56" width="4" height="4" fill="#000"/>
-                        <rect x="88" y="56" width="4" height="4" fill="#000"/>
-                        <rect x="72" y="60" width="4" height="4" fill="#000"/>
-                        <rect x="76" y="60" width="4" height="4" fill="#000"/>
-                        <rect x="80" y="60" width="4" height="4" fill="#000"/>
-                        <rect x="84" y="60" width="4" height="4" fill="#000"/>
-                        <rect x="88" y="60" width="4" height="4" fill="#000"/>
-                        <rect x="76" y="64" width="4" height="4" fill="#000"/>
-                        <rect x="80" y="64" width="4" height="4" fill="#000"/>
-                        <rect x="84" y="64" width="4" height="4" fill="#000"/>
-                        <rect x="80" y="68" width="4" height="4" fill="#000"/>
-                    </g>
-                    <rect x="76" y="52" width="4" height="4" fill="#e63946"/>
-                    <rect x="88" y="52" width="4" height="4" fill="#e63946"/>
-                    <rect x="72" y="56" width="4" height="4" fill="#e63946"/>
-                    <rect x="76" y="56" width="4" height="4" fill="#e63946"/>
-                    <rect x="80" y="56" width="4" height="4" fill="#e63946"/>
-                    <rect x="84" y="56" width="4" height="4" fill="#e63946"/>
-                    <rect x="88" y="56" width="4" height="4" fill="#e63946"/>
-                    <rect x="72" y="60" width="4" height="4" fill="#e63946"/>
-                    <rect x="76" y="60" width="4" height="4" fill="#e63946"/>
-                    <rect x="80" y="60" width="4" height="4" fill="#e63946"/>
-                    <rect x="84" y="60" width="4" height="4" fill="#e63946"/>
-                    <rect x="88" y="60" width="4" height="4" fill="#e63946"/>
-                    <rect x="76" y="64" width="4" height="4" fill="#e63946"/>
-                    <rect x="80" y="64" width="4" height="4" fill="#e63946"/>
-                    <rect x="84" y="64" width="4" height="4" fill="#e63946"/>
-                    <rect x="80" y="68" width="4" height="4" fill="#e63946"/>
-
-                    <rect x="76" y="56" width="4" height="4" fill="#ff9aa5"/>
-                    <rect x="80" y="56" width="4" height="4" fill="#ff9aa5"/>
-                    <rect x="76" y="60" width="4" height="4" fill="#ffb8c0"/>
-                    <rect x="88" y="60" width="4" height="4" fill="#a8202c"/>
-                    <rect x="84" y="64" width="4" height="4" fill="#a8202c"/>
-                    <rect x="80" y="68" width="4" height="4" fill="#a8202c"/>
-                    <rect x="76" y="56" width="2" height="2" fill="#ffffff" opacity="0.9"/>
-                </g>
-
-                <rect x="14" y="30" width="152" height="2" fill="#a8885e"/>
-                <rect x="14" y="120" width="152" height="2" fill="#a8885e"/>
-                <rect x="14" y="30" width="2" height="92" fill="#a8885e"/>
-                <rect x="164" y="30" width="2" height="92" fill="#a8885e"/>
-
-                <rect x="6" y="12" width="2" height="8" fill="#fff5c2"/>
-                <rect x="2" y="16" width="10" height="2" fill="#fff5c2"/>
-                <rect x="4" y="14" width="2" height="2" fill="#ffffff"/>
-                <rect x="8" y="18" width="2" height="2" fill="#ffffff"/>
-                <rect x="170" y="10" width="2" height="6" fill="#fff5c2"/>
-                <rect x="166" y="13" width="10" height="2" fill="#fff5c2"/>
-                <rect x="168" y="11" width="2" height="2" fill="#ffffff"/>
-                <rect x="4" y="126" width="2" height="6" fill="#fff5c2"/>
-                <rect x="1" y="128" width="8" height="2" fill="#fff5c2"/>
-                <rect x="172" y="124" width="2" height="6" fill="#fff5c2"/>
-                <rect x="169" y="126" width="8" height="2" fill="#fff5c2"/>
-                <rect x="0" y="70" width="2" height="2" fill="#fff5c2"/>
-                <rect x="178" y="60" width="2" height="2" fill="#fff5c2"/>
-                <rect x="176" y="100" width="2" height="2" fill="#fff5c2"/>
-                <rect x="2" y="100" width="2" height="2" fill="#fff5c2"/>
-            </svg>
-        </div>
-
-        <div class="message" id="hintMessage">
-            Вам письмо,<br>открой его
-        </div>
+<main class="app">
+  <header>
+    <div>
+      <div class="eyebrow">✦ Tiny underwater world</div>
+      <h1>PIXEL <span>REEF</span></h1>
+      <p class="subtitle">Маленький океан, который живёт своей жизнью.</p>
     </div>
-
-    <!-- ЭКРАН 2: ПИСЬМО -->
-    <div class="letter-screen" id="letterScreen">
-        <div class="letter-frame" id="letterFrame">
-            <div class="corner tr"></div>
-            <div class="corner bl"></div>
-            <div class="letter-text" id="letterText"></div>
-            <span class="cursor" id="cursor"></span>
-        </div>
-        <button class="back-btn" id="backBtn">Закрыть письмо</button>
+    <div class="status">
+      <span class="dot"></span>
+      <span>ЭКОСИСТЕМА АКТИВНА</span>
     </div>
+  </header>
 
-    <!-- ОВЕРЛЕЙ ОБРАТНОГО ОТСЧЁТА -->
-    <div class="countdown-overlay" id="countdownOverlay">
-        <div class="countdown-text">
-            <div>ПИСЬМО САМОУНИЧТОЖИТСЯ</div>
-            <div>ЧЕРЕЗ</div>
-            <div class="countdown-number" id="countdownNumber">3</div>
-        </div>
+  <section class="tank-shell">
+    <div class="tank" id="tank">
+      <canvas id="ocean" width="320" height="180"></canvas>
+      <div class="glass-glint"></div>
+      <div class="tank-label">
+        REEF-01 <span>● LIVE</span><br>
+        <span style="color:#8eb9cf">DEPTH: 12 M</span>
+      </div>
+      <div class="hint" id="hint">Выбери инструмент ✦</div>
+      <div class="progress-dots">
+        <span>✦</span>
+        <div class="progress-dot" id="dot1"></div>
+        <div class="progress-dot" id="dot2"></div>
+        <div class="progress-dot" id="dot3"></div>
+        <div class="progress-dot" id="dot4"></div>
+      </div>
+      <div class="night-hint" id="nightHint">☾ dbl-click</div>
     </div>
+  </section>
 
-    <!-- ЧАСТИЦЫ РАСТВОРЕНИЯ -->
-    <div class="dissolve-particles" id="dissolveParticles"></div>
+  <div class="tools">
+    <button id="btnSponge">🧽 <span class="tool-label">Губка</span></button>
+    <button id="btnNet">🥅 <span class="tool-label">Сачок</span></button>
+    <button id="btnFeed">🍞 <span class="tool-label">Корм</span></button>
+  </div>
 
-    <script>
-        // ============================================
-        // ЭЛЕМЕНТЫ
-        // ============================================
-        const envelopeScreen = document.getElementById('envelopeScreen');
-        const letterScreen = document.getElementById('letterScreen');
-        const envelopeContainer = document.getElementById('envelopeContainer');
-        const hintMessage = document.getElementById('hintMessage');
-        const letterText = document.getElementById('letterText');
-        const cursor = document.getElementById('cursor');
-        const backBtn = document.getElementById('backBtn');
-        const soundToggle = document.getElementById('soundToggle');
-        const countdownOverlay = document.getElementById('countdownOverlay');
-        const countdownNumber = document.getElementById('countdownNumber');
-        const dissolveParticles = document.getElementById('dissolveParticles');
-        const letterFrame = document.getElementById('letterFrame');
+  <div class="footer">
+    <span><b>УПРАВЛЕНИЕ:</b> <span class="footer-hint">выбери инструмент ↓</span></span>
+    <span class="footer-credit">СОЗДАНО С ПИКСЕЛЬНОЙ ЛЮБОВЬЮ <b>▣</b></span>
+  </div>
+</main>
 
-        // ============================================
-        // ТЕКСТ ПИСЬМА
-        // ============================================
-        const letterContent = `Привет, Дан да Данчик.
+<div class="gift-overlay" id="giftOverlay">
+  <div class="gift-content" id="giftContent">
+    <div class="gift-box" id="giftBox">🎁</div>
+    <div class="gift-hint">Нажми, чтобы открыть! ✨</div>
+  </div>
+</div>
 
-Я решил тебе написать это
-письмо.. просто так.
-Нравишься мне и греешь
-душу.
+<script>
+(() => {
+  const canvas = document.getElementById('ocean');
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const W = canvas.width, H = canvas.height;
 
-Я рад, что ты у меня есть:
-такая хорошенькая,
-миленькая и добрая.
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const pick = a => a[Math.floor(Math.random() * a.length)];
 
-Пусть глазик проходит,
-солнце светит и жизнь
-радует красками)
+  const palettes = [
+    { body: '#ffb84e', shade: '#e8753e', fin: '#ffe18a', eye: '#14263b' },
+    { body: '#ff7fa9', shade: '#e84f83', fin: '#ffc2d5', eye: '#14263b' },
+    { body: '#75e6d2', shade: '#2caaa9', fin: '#b7fff0', eye: '#14263b' },
+    { body: '#a7a1ff', shade: '#7067d9', fin: '#d9d4ff', eye: '#14263b' },
+    { body: '#f4e875', shade: '#d3a942', fin: '#fff6ad', eye: '#14263b' },
+    { body: '#f5f6ff', shade: '#8cb9d2', fin: '#c8f1ff', eye: '#14263b' }
+  ];
 
-С любовью, Я ♥`;
+  function makeFish(x, y, scale, dir, pal, depth = 1) {
+    const baseSpeed = rand(0.13, 0.34) / scale;
+    return {
+      x, y, baseY: y, targetY: y, scale, dir,
+      speed: baseSpeed, baseSpeed,
+      pal: pal || pick(palettes),
+      phase: rand(0, 7), wander: rand(0.3, 1.4),
+      kind: Math.random() < 0.25 ? 'long' : 'normal',
+      state: 'swimming', stateTimer: rand(60, 300),
+      turnProgress: 0,
+      personality: pick(['bold', 'timid', 'lazy', 'curious']),
+      schoolId: Math.floor(Math.random() * 3),
+      tailPhase: rand(0, 7),
+      depthLayer: depth,
+      biteCount: 0
+    };
+  }
 
-        // ============================================
-        // ЗВУКОВАЯ СИСТЕМА
-        // ============================================
-        let audioContext = null;
-        let soundEnabled = true;
-
-        function initAudio() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-        }
-
-        function playPixelBeep() {
-            if (!soundEnabled) return;
-            initAudio();
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-            const oscillator = audioContext.createOscillator();
-            oscillator.type = 'square';
-            const baseFreq = 800 + Math.random() * 400;
-            oscillator.frequency.setValueAtTime(baseFreq, now);
-
-            const gainNode = audioContext.createGain();
-            gainNode.gain.setValueAtTime(0.06, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
-
-            const filter = audioContext.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(3000, now);
-
-            oscillator.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.start(now);
-            oscillator.stop(now + 0.04);
-        }
-
-        function playOpenSound() {
-            if (!soundEnabled) return;
-            initAudio();
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-
-            const osc1 = audioContext.createOscillator();
-            osc1.type = 'square';
-            osc1.frequency.setValueAtTime(220, now);
-            osc1.frequency.exponentialRampToValueAtTime(440, now + 0.3);
-
-            const gain1 = audioContext.createGain();
-            gain1.gain.setValueAtTime(0.08, now);
-            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-
-            osc1.connect(gain1);
-            gain1.connect(audioContext.destination);
-            osc1.start(now);
-            osc1.stop(now + 0.4);
-
-            const osc2 = audioContext.createOscillator();
-            osc2.type = 'square';
-            osc2.frequency.setValueAtTime(440, now + 0.15);
-            osc2.frequency.exponentialRampToValueAtTime(880, now + 0.4);
-
-            const gain2 = audioContext.createGain();
-            gain2.gain.setValueAtTime(0.001, now + 0.15);
-            gain2.gain.linearRampToValueAtTime(0.06, now + 0.2);
-            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
-
-            osc2.connect(gain2);
-            gain2.connect(audioContext.destination);
-            osc2.start(now + 0.15);
-            osc2.stop(now + 0.55);
-        }
-
-        function playCompleteSound() {
-            if (!soundEnabled) return;
-            initAudio();
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-            const notes = [523.25, 659.25, 783.99];
-
-            notes.forEach((freq, i) => {
-                const osc = audioContext.createOscillator();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(freq, now + i * 0.08);
-
-                const gain = audioContext.createGain();
-                gain.gain.setValueAtTime(0.05, now + i * 0.08);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.4);
-
-                osc.connect(gain);
-                gain.connect(audioContext.destination);
-                osc.start(now + i * 0.08);
-                osc.stop(now + i * 0.08 + 0.45);
-            });
-        }
-
-        function playCountdownBeep() {
-            if (!soundEnabled) return;
-            initAudio();
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-            const osc = audioContext.createOscillator();
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(1200, now);
-            osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
-
-            const gain = audioContext.createGain();
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-
-            const filter = audioContext.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(2500, now);
-
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.start(now);
-            osc.stop(now + 0.22);
-        }
-
-        function playDissolveSound() {
-            if (!soundEnabled) return;
-            initAudio();
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-
-            const bufferSize = audioContext.sampleRate * 1.2;
-            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
-            }
-
-            const noise = audioContext.createBufferSource();
-            noise.buffer = buffer;
-
-            const noiseGain = audioContext.createGain();
-            noiseGain.gain.setValueAtTime(0.12, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-
-            const noiseFilter = audioContext.createBiquadFilter();
-            noiseFilter.type = 'lowpass';
-            noiseFilter.frequency.setValueAtTime(3000, now);
-            noiseFilter.frequency.exponentialRampToValueAtTime(200, now + 1.2);
-
-            noise.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            noiseGain.connect(audioContext.destination);
-            noise.start(now);
-            noise.stop(now + 1.2);
-
-            const osc = audioContext.createOscillator();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(200, now);
-            osc.frequency.exponentialRampToValueAtTime(40, now + 1.0);
-
-            const oscGain = audioContext.createGain();
-            oscGain.gain.setValueAtTime(0.08, now);
-            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-
-            osc.connect(oscGain);
-            oscGain.connect(audioContext.destination);
-            osc.start(now);
-            osc.stop(now + 1.2);
-        }
-
-        soundToggle.addEventListener('click', () => {
-            soundEnabled = !soundEnabled;
-            soundToggle.classList.toggle('muted', !soundEnabled);
-            soundToggle.textContent = soundEnabled ? '♪' : '✕';
-            if (soundEnabled) {
-                initAudio();
-                playPixelBeep();
-            }
+  function makeDirtSpots() {
+    const spots = [];
+    const positions = [
+      { x: 55, y: 38 }, { x: 195, y: 60 }, { x: 115, y: 95 },
+      { x: 265, y: 45 }, { x: 155, y: 28 }, { x: 80, y: 75 }
+    ];
+    for (const pos of positions) {
+      const radius = rand(14, 22);
+      const pixels = [];
+      const count = Math.floor(radius * 2.5);
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * radius;
+        pixels.push({
+          dx: Math.cos(angle) * dist,
+          dy: Math.sin(angle) * dist,
+          size: 2 + Math.floor(Math.random() * 2),
+          ci: Math.floor(Math.random() * 3)
         });
+      }
+      spots.push({ x: pos.x, y: pos.y, radius, health: 100, pixels });
+    }
+    return spots;
+  }
 
-        // ============================================
-        // СОСТОЯНИЕ
-        // ============================================
-        let isOpening = false;
-        let typingInterval = null;
-        let isDissolving = false;
-        let isDestroyed = false;
+  const dirtColors = ['rgba(60,50,35,0.7)', 'rgba(80,75,50,0.6)', 'rgba(45,65,55,0.55)'];
 
-        // ============================================
-        // ОТКРЫТИЕ КОНВЕРТА
-        // ============================================
-        envelopeContainer.addEventListener('click', openEnvelope);
+  const state = {
+    time: 0,
+    night: false,
+    tool: null,
+    food: [],
+    bubbles: [],
+    fish: [],
+    particles: [],
+    dirtSpots: makeDirtSpots(),
+    naughtyFish: null,
+    scrubbing: false,
+    mouseX: 160,
+    mouseY: 90,
+    mouseInCanvas: false,
+    feedGiven: false,
+    bgFish: [],
+    whaleTimer: 0,
+    whaleX: -80,
+    whaleVisible: false,
+    thermalBubbles: [],
+    hearts: [],
+    catfish1: { x: 80, y: 142, dir: 1, romanticTimer: 0, isRomantic: false, targetX: 80 },
+    catfish2: { x: 240, y: 142, dir: -1, romanticTimer: 0, isRomantic: false, targetX: 240 },
+    currentQuest: 1,
+    showQuest: true,
+    questTimer: null
+  };
 
-        function openEnvelope() {
-            if (isOpening || isDissolving || isDestroyed) return;
-            isOpening = true;
+  // Initialize fish
+  for (let i = 0; i < 4; i++) {
+    state.fish.push(makeFish(rand(35, 280), rand(35, 100), pick([1.2, 1.5]), Math.random() < 0.5 ? 1 : -1, undefined, 2));
+  }
+  for (let i = 0; i < 3; i++) {
+    state.fish.push(makeFish(rand(35, 280), rand(40, 110), pick([0.9, 1]), Math.random() < 0.5 ? 1 : -1, undefined, 1));
+  }
+  for (let i = 0; i < 8; i++) {
+    state.fish.push(makeFish(rand(20, 300), rand(30, 90), pick([0.5, 0.6, 0.7]), Math.random() < 0.5 ? 1 : -1, undefined, 0));
+  }
 
-            initAudio();
-            playOpenSound();
+  // Background fish
+  for (let i = 0; i < 12; i++) {
+    state.bgFish.push({
+      x: rand(0, W), y: rand(25, 80),
+      speed: rand(0.08, 0.18), dir: Math.random() < 0.5 ? 1 : -1,
+      size: rand(2, 3.5), phase: rand(0, 7)
+    });
+  }
 
-            envelopeContainer.classList.add('opening');
+  // Thermal bubbles
+  for (let i = 0; i < 5; i++) {
+    state.thermalBubbles.push({ x: rand(40, 280), y: rand(100, 150), r: rand(1, 2), speed: rand(0.08, 0.2) });
+  }
 
-            hintMessage.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-            hintMessage.style.opacity = '0';
-            hintMessage.style.transform = 'translateY(20px)';
+  // Regular bubbles
+  for (let i = 0; i < 17; i++) {
+    state.bubbles.push({ x: rand(8, 312), y: rand(0, H), r: pick([1, 1, 2]), speed: rand(0.12, 0.35), phase: rand(0, 7) });
+  }
 
-            setTimeout(() => {
-                envelopeScreen.classList.add('hidden');
-                letterScreen.classList.add('visible');
+  // Particles
+  for (let i = 0; i < 65; i++) {
+    state.particles.push({ x: rand(0, W), y: rand(12, 148), phase: rand(0, 7), size: Math.random() < 0.8 ? 1 : 2 });
+  }
 
-                setTimeout(() => {
-                    typeLetter();
-                }, 400);
-            }, 1200);
+  // Naughty fish
+  const naughtyFish = makeFish(160, 75, 1.45, 1, { body: '#ff594f', shade: '#b92743', fin: '#ffc3a1', eye: '#111a2b' }, 2);
+  naughtyFish.speed = 0.6;
+  naughtyFish.baseSpeed = 0.6;
+  naughtyFish.isNaughty = true;
+  naughtyFish.personality = 'bold';
+  state.fish.push(naughtyFish);
+  state.naughtyFish = naughtyFish;
+
+  function rect(x, y, w, h, c) {
+    ctx.fillStyle = c;
+    ctx.fillRect(Math.round(x), Math.round(y), w, h);
+  }
+
+  function burst(x, y, count = 12) {
+    for (let i = 0; i < count; i++) {
+      state.bubbles.push({
+        x: x + rand(-7, 7), y: y + rand(-4, 4),
+        r: pick([1, 1, 2]), speed: rand(0.2, 0.7), phase: rand(0, 7)
+      });
+    }
+    if (state.bubbles.length > 100) state.bubbles.splice(0, state.bubbles.length - 100);
+  }
+
+  function checkCompletion() {
+    const allClean = state.dirtSpots.every(sp => sp.health <= 0);
+    const caught = state.naughtyFish?.caught || false;
+    const fed = state.feedGiven;
+    const bellyUpFish = state.fish.filter(f => f.state === 'belly-up' && !f.caught);
+    const allBellyUpCaught = bellyUpFish.length === 0;
+
+    // Update progress dots
+    document.getElementById('dot1').classList.toggle('active', allClean);
+    document.getElementById('dot2').classList.toggle('active', caught && allBellyUpCaught);
+    document.getElementById('dot3').classList.toggle('active', fed);
+
+    // Quest progression
+    if (allClean && state.currentQuest === 1) {
+      state.currentQuest = 2;
+      showQuest();
+    }
+    if (caught && allBellyUpCaught && state.currentQuest === 2) {
+      state.currentQuest = 3;
+      showQuest();
+    }
+    if (fed && state.currentQuest === 3) {
+      state.currentQuest = 4;
+      showQuest();
+    }
+  }
+
+  function showQuest() {
+    state.showQuest = true;
+    updateQuestDisplay();
+    if (state.questTimer) clearTimeout(state.questTimer);
+    state.questTimer = setTimeout(() => {
+      state.showQuest = false;
+      updateQuestDisplay();
+    }, 5000);
+  }
+
+  function updateQuestDisplay() {
+    const existing = document.querySelector('.quest-overlay');
+    if (existing) existing.remove();
+
+    if (state.showQuest && state.currentQuest <= 4) {
+      const overlay = document.createElement('div');
+      overlay.className = 'quest-overlay';
+      overlay.onclick = () => {
+        state.showQuest = false;
+        updateQuestDisplay();
+      };
+
+      const box = document.createElement('div');
+      box.className = 'quest-box';
+
+      const text = document.createElement('div');
+      text.className = 'quest-text';
+      const quests = {
+        1: '🧽 Эти рыбки скоро сдохнут если не помыть аквариум...',
+        2: '🥅 Какой то пидр кусает моих рыбок. Надо выловить его и трупы павших',
+        3: '🍞 Надо бы их покормить..',
+        4: '👀 Кто то это там выглядывает?..'
+      };
+      text.textContent = quests[state.currentQuest];
+
+      const hint = document.createElement('div');
+      hint.className = 'quest-hint';
+      hint.textContent = 'нажми чтобы закрыть';
+
+      box.appendChild(text);
+      box.appendChild(hint);
+      overlay.appendChild(box);
+      document.getElementById('tank').appendChild(overlay);
+    }
+  }
+
+  // Drawing functions
+  function drawFarBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    if (state.night) {
+      g.addColorStop(0, '#040d1f');
+      g.addColorStop(0.3, '#07162f');
+      g.addColorStop(0.6, '#0b3450');
+      g.addColorStop(1, '#164b5a');
+    } else {
+      g.addColorStop(0, '#0e5a7a');
+      g.addColorStop(0.3, '#14708c');
+      g.addColorStop(0.6, '#0a526f');
+      g.addColorStop(1, '#0b394f');
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // Distant mountains
+    ctx.fillStyle = state.night ? '#061828' : '#0a3a50';
+    ctx.beginPath();
+    ctx.moveTo(0, 120);
+    ctx.lineTo(0, 95); ctx.lineTo(20, 80); ctx.lineTo(35, 90); ctx.lineTo(50, 72);
+    ctx.lineTo(70, 85); ctx.lineTo(85, 78); ctx.lineTo(100, 92); ctx.lineTo(120, 82);
+    ctx.lineTo(140, 95); ctx.lineTo(155, 88); ctx.lineTo(175, 75); ctx.lineTo(195, 88);
+    ctx.lineTo(210, 80); ctx.lineTo(230, 92); ctx.lineTo(250, 78); ctx.lineTo(270, 85);
+    ctx.lineTo(290, 72); ctx.lineTo(305, 82); ctx.lineTo(320, 90);
+    ctx.lineTo(320, 120);
+    ctx.closePath();
+    ctx.fill();
+
+    // Mid rocks
+    ctx.fillStyle = state.night ? '#081e30' : '#0c4258';
+    ctx.beginPath();
+    ctx.moveTo(0, 130);
+    for (let x = 0; x <= 320; x += 15) {
+      ctx.lineTo(x, 108 + Math.sin(x * 0.1) * 8);
+    }
+    ctx.lineTo(320, 130);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawSunRays() {
+    if (state.night) {
+      for (let i = 0; i < 20; i++) {
+        const x = (i * 47 + 13) % W;
+        const y = (i * 29 + 8) % 100;
+        const alpha = Math.sin(state.time * 0.03 + i) * 0.5 + 0.5;
+        if (alpha > 0.6) rect(x, y, 1, 1, `rgba(180,220,255,${alpha * 0.4})`);
+      }
+    } else {
+      ctx.fillStyle = '#b9fff006';
+      for (let i = 0; i < 6; i++) {
+        const x = 20 + i * 55 + Math.sin(state.time * 0.004 + i) * 8;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + 14, 0);
+        ctx.lineTo(x + 50, 130);
+        ctx.lineTo(x + 32, 130);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+  }
+
+  function drawBackgroundFish() {
+    for (const bf of state.bgFish) {
+      const yOff = Math.sin(state.time * 0.02 + bf.phase) * 3;
+      const alpha = state.night ? 0.15 : 0.25;
+      ctx.fillStyle = `rgba(140,200,210,${alpha})`;
+      const x = Math.round(bf.x);
+      const y = Math.round(bf.y + yOff);
+      ctx.fillRect(x, y, Math.round(bf.size * 2), Math.round(bf.size));
+      ctx.fillRect(x - bf.dir * 2, y - 1, 1, Math.round(bf.size + 1));
+    }
+
+    if (state.whaleVisible) {
+      const wx = Math.round(state.whaleX);
+      const wy = 65 + Math.sin(state.time * 0.008) * 5;
+      ctx.fillStyle = state.night ? '#05152088' : '#0a3a5066';
+      ctx.fillRect(wx, wy, 40, 10);
+      ctx.fillRect(wx + 5, wy - 3, 30, 3);
+      ctx.fillRect(wx + 10, wy + 10, 25, 3);
+      ctx.fillRect(wx - 8, wy - 4, 10, 5);
+      ctx.fillRect(wx - 12, wy - 7, 6, 4);
+      ctx.fillRect(wx - 12, wy + 5, 6, 4);
+      ctx.fillRect(wx + 38, wy + 2, 5, 6);
+    }
+  }
+
+  function drawSandFloor() {
+    rect(0, 148, W, 7, '#c89a5a');
+    rect(0, 146, W, 3, '#e4bd79');
+
+    for (let i = 0; i < 80; i++) {
+      const x = (i * 41) % W;
+      const y = 148 + ((i * 17) % 5);
+      const c = ['#e9cb8b', '#8f6c50', '#c39a63', '#f4dba0', '#6f5a4b'][i % 5];
+      rect(x, y, 1 + (i % 3 === 0 ? 1 : 0), 1, c);
+    }
+
+    // Stones
+    rect(12, 144, 17, 4, '#536e70');
+    rect(16, 141, 10, 4, '#6c8880');
+    rect(267, 145, 25, 4, '#4b6870');
+    rect(272, 141, 15, 5, '#66858a');
+
+    // Treasure chest
+    rect(232, 134, 26, 12, '#66472e');
+    rect(231, 132, 27, 4, '#b77a3e');
+    rect(234, 129, 23, 4, '#d59a4d');
+    rect(235, 135, 20, 8, '#8b572e');
+    rect(243, 134, 4, 9, '#f0ca65');
+    rect(244, 137, 2, 3, '#fff0a1');
+
+    // Shells
+    rect(43, 147, 7, 3, '#f6c6aa');
+    rect(44, 145, 5, 2, '#f6c6aa');
+    rect(72, 148, 7, 3, '#b5dce0');
+    rect(73, 146, 5, 2, '#b5dce0');
+
+    // Castle
+    const castleX = 130;
+    const castleY = 138;
+    rect(castleX, castleY, 30, 10, '#5a4a6a');
+    rect(castleX + 2, castleY - 2, 26, 2, '#6a5a7a');
+    rect(castleX, castleY - 8, 8, 8, '#5a4a6a');
+    rect(castleX + 22, castleY - 8, 8, 8, '#5a4a6a');
+    rect(castleX, castleY - 10, 2, 2, '#6a5a7a');
+    rect(castleX + 4, castleY - 10, 2, 2, '#6a5a7a');
+    rect(castleX + 22, castleY - 10, 2, 2, '#6a5a7a');
+    rect(castleX + 26, castleY - 10, 2, 2, '#6a5a7a');
+    rect(castleX + 11, castleY - 12, 8, 12, '#5a4a6a');
+    rect(castleX + 11, castleY - 14, 2, 2, '#6a5a7a');
+    rect(castleX + 15, castleY - 14, 2, 2, '#6a5a7a');
+    rect(castleX + 2, castleY - 5, 2, 3, '#2a1a3a');
+    rect(castleX + 24, castleY - 5, 2, 3, '#2a1a3a');
+    rect(castleX + 14, castleY - 8, 2, 3, '#2a1a3a');
+    rect(castleX + 13, castleY + 4, 4, 6, '#2a1a3a');
+    rect(castleX + 14, castleY - 16, 1, 4, '#8a7a9a');
+    rect(castleX + 15, castleY - 16, 3, 2, '#ff6b9d');
+
+    // Mollusk
+    const molluskVisible = Math.sin(state.time * 0.03) > 0.3;
+    if (molluskVisible) {
+      const molluskX = castleX + 14;
+      const molluskY = castleY + 2;
+      rect(molluskX, molluskY, 3, 2, '#d4a574');
+      rect(molluskX + 1, molluskY - 1, 1, 1, '#e4b584');
+      rect(molluskX, molluskY - 2, 1, 1, '#c4956a');
+      rect(molluskX + 2, molluskY - 2, 1, 1, '#c4956a');
+      rect(molluskX, molluskY - 3, 1, 1, '#000000');
+      rect(molluskX + 2, molluskY - 3, 1, 1, '#000000');
+    }
+  }
+
+  function drawCatfish(x, y, dir) {
+    const px = Math.round(x);
+    const py = Math.round(y);
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.scale(dir, 1);
+    rect(-8, -3, 16, 6, '#4a3a2a');
+    rect(-6, -4, 12, 1, '#5a4a3a');
+    rect(6, -4, 4, 8, '#5a4a3a');
+    rect(8, -3, 2, 6, '#6a5a4a');
+    rect(10, -2, 3, 1, '#6a5a4a');
+    rect(10, 1, 3, 1, '#6a5a4a');
+    rect(7, -2, 1, 1, '#ffffff');
+    rect(8, -2, 1, 1, '#000000');
+    rect(-10, -4, 3, 8, '#3a2a1a');
+    ctx.restore();
+  }
+
+  function drawCatfishPair() {
+    const cf1 = state.catfish1;
+    const cf2 = state.catfish2;
+
+    if (cf1.isRomantic && cf2.isRomantic) {
+      const midX = 160;
+      if (cf1.x < midX - 3) cf1.x += 0.3;
+      if (cf2.x > midX + 3) cf2.x -= 0.3;
+      cf1.dir = 1;
+      cf2.dir = -1;
+
+      const dist = Math.abs(cf1.x - cf2.x);
+      if (dist < 20 && state.time % 15 === 0) {
+        state.hearts.push({ x: 160 + rand(-10, 10), y: 135, life: 60 });
+      }
+
+      cf1.romanticTimer--;
+      cf2.romanticTimer--;
+      if (cf1.romanticTimer <= 0) {
+        cf1.isRomantic = false;
+        cf2.isRomantic = false;
+        cf1.targetX = rand(60, 120);
+        cf2.targetX = rand(200, 260);
+      }
+    } else {
+      if (!cf1.targetX || Math.abs(cf1.x - cf1.targetX) < 5) {
+        cf1.targetX = rand(50, 140);
+      }
+      if (!cf2.targetX || Math.abs(cf2.x - cf2.targetX) < 5) {
+        cf2.targetX = rand(180, 270);
+      }
+
+      if (cf1.x < cf1.targetX) { cf1.x += 0.15; cf1.dir = 1; }
+      else if (cf1.x > cf1.targetX) { cf1.x -= 0.15; cf1.dir = -1; }
+
+      if (cf2.x < cf2.targetX) { cf2.x += 0.15; cf2.dir = 1; }
+      else if (cf2.x > cf2.targetX) { cf2.x -= 0.15; cf2.dir = -1; }
+
+      if (Math.random() < 0.002 && !cf1.isRomantic) {
+        cf1.isRomantic = true;
+        cf2.isRomantic = true;
+        cf1.romanticTimer = 400;
+        cf2.romanticTimer = 400;
+        cf1.targetX = 160;
+        cf2.targetX = 160;
+      }
+    }
+
+    drawCatfish(cf1.x, cf1.y, cf1.dir);
+    drawCatfish(cf2.x, cf2.y, cf2.dir);
+
+    for (let i = state.hearts.length - 1; i >= 0; i--) {
+      const h = state.hearts[i];
+      const hy = h.y - (60 - h.life) * 0.4;
+      const alpha = h.life / 60;
+      rect(h.x, hy, 2, 2, `rgba(255,107,157,${alpha})`);
+      rect(h.x - 1, hy + 1, 1, 1, `rgba(255,107,157,${alpha})`);
+      rect(h.x + 2, hy + 1, 1, 1, `rgba(255,107,157,${alpha})`);
+      rect(h.x, hy + 2, 2, 1, `rgba(255,107,157,${alpha})`);
+      h.life--;
+      if (h.life <= 0) state.hearts.splice(i, 1);
+    }
+  }
+
+  function drawFish(f) {
+    const depthAlpha = f.depthLayer === 0 ? 0.3 : f.depthLayer === 1 ? 0.7 : 1.0;
+    const x = Math.round(f.x);
+    const y = Math.round(f.y + Math.sin(state.time * 0.03 + f.phase) * 2.5);
+    const p = f.pal;
+    const sc = f.scale * (f.depthLayer === 0 ? 0.8 : 1);
+
+    ctx.save();
+    ctx.globalAlpha = depthAlpha;
+    ctx.translate(x, y);
+
+    let drawDir = f.dir;
+    let flipVertical = false;
+
+    if (f.state === 'belly-up') {
+      flipVertical = true;
+      const wobble = Math.sin(state.time * 0.1 + f.phase) * 3;
+      ctx.translate(0, wobble);
+    }
+
+    if (f.state === 'turning') {
+      const squish = 1 - f.turnProgress * 0.3;
+      ctx.scale(drawDir * sc * squish, flipVertical ? -sc : sc);
+    } else {
+      ctx.scale(drawDir * sc, flipVertical ? -sc : sc);
+    }
+
+    let tailSpeed = 0.22;
+    if (f.state === 'darting' || f.state === 'fleeing') tailSpeed = 0.45;
+    else if (f.state === 'idle' || f.state === 'belly-up') tailSpeed = 0.05;
+    const flick = Math.sin(state.time * tailSpeed + f.tailPhase) > 0 ? 0 : 2;
+
+    rect(-10, -2, 4, 4, p.shade);
+    rect(-13, -4 - flick, 4, 4, p.fin);
+    rect(-13, 1 + flick, 4, 4, p.fin);
+    rect(-3, -5, 5, 3, p.fin);
+    rect(1, 3, 5, 3, p.shade);
+    rect(-7, -4, 15, 9, p.shade);
+    rect(-5, -5, 11, 11, p.body);
+    rect(4, -4, 5, 8, p.body);
+    rect(3, -2, 1, 4, p.shade);
+    rect(5, -3, 2, 2, '#fff7db');
+    rect(6, -3, 1, 2, p.eye);
+
+    if (f.state === 'belly-up') {
+      rect(5, -3, 1, 1, '#ff0000');
+      rect(7, -3, 1, 1, '#ff0000');
+      rect(6, -2, 1, 1, '#ff0000');
+    }
+
+    ctx.restore();
+  }
+
+  function drawBubbles() {
+    for (const b of state.bubbles) {
+      const wobble = Math.sin(state.time * 0.045 + b.phase) * 1.4;
+      rect(b.x + wobble, b.y, b.r, b.r, '#a9f5ff99');
+      rect(b.x - 1 + wobble, b.y + 1, b.r + 2, 1, state.night ? '#79c8e988' : '#8ceeffaa');
+      rect(b.x + wobble, b.y + 2, b.r, 1, '#e1ffff77');
+    }
+  }
+
+  function drawFood() {
+    for (const f of state.food) {
+      rect(f.x, f.y, 2, 2, '#ffe27a');
+      rect(f.x + 1, f.y - 1, 1, 1, '#fff7c2');
+    }
+  }
+
+  function drawDirt() {
+    for (const spot of state.dirtSpots) {
+      if (spot.health <= 0) continue;
+      const visibleCount = Math.floor(spot.health / 100 * spot.pixels.length);
+      for (let i = 0; i < visibleCount; i++) {
+        const px = spot.pixels[i];
+        rect(spot.x + px.dx, spot.y + px.dy, px.size, px.size, dirtColors[px.ci]);
+      }
+    }
+  }
+
+  function drawCursor() {
+    if (!state.mouseInCanvas || !state.tool) return;
+    const mx = state.mouseX;
+    const my = state.mouseY;
+
+    if (state.tool === 'sponge') {
+      const x = Math.round(mx) - 14;
+      const y = Math.round(my) - 10;
+      rect(x, y, 28, 18, '#e8b830');
+      rect(x + 1, y - 1, 26, 1, '#f0c84a');
+      rect(x, y, 28, 1, '#f0c84a');
+      rect(x + 3, y + 3, 4, 3, '#b07818');
+      rect(x + 11, y + 4, 4, 3, '#b07818');
+      rect(x + 19, y + 3, 3, 3, '#b07818');
+      rect(x + 2, y + 1, 7, 1, '#ffe88a');
+      if (state.scrubbing && state.time % 5 < 3) {
+        rect(x + 5, y + 19, 1, 3, '#a9f5ff88');
+        rect(x + 14, y + 20, 1, 2, '#a9f5ff66');
+        rect(x + 22, y + 19, 1, 3, '#a9f5ff77');
+      }
+    } else if (state.tool === 'net') {
+      const x = Math.round(mx) - 10;
+      const y = Math.round(my) - 10;
+      rect(x + 9, y + 10, 2, 16, '#8b5a2b');
+      rect(x + 2, y, 16, 1, '#d0d0d0');
+      rect(x + 1, y + 1, 1, 9, '#d0d0d0');
+      rect(x + 18, y + 1, 1, 9, '#d0d0d0');
+      rect(x + 2, y + 10, 16, 1, '#d0d0d0');
+      rect(x + 5, y + 2, 1, 8, '#e0e0e055');
+      rect(x + 8, y + 2, 1, 8, '#e0e0e055');
+      rect(x + 11, y + 2, 1, 8, '#e0e0e055');
+      rect(x + 14, y + 2, 1, 8, '#e0e0e055');
+    } else if (state.tool === 'feed') {
+      const x = Math.round(mx) - 9;
+      const y = Math.round(my) - 12;
+      rect(x + 2, y + 4, 14, 12, '#c8753a');
+      rect(x + 3, y + 3, 12, 1, '#d98a4a');
+      rect(x + 5, y + 2, 8, 2, '#d98a4a');
+      rect(x + 4, y + 6, 2, 2, '#ffe27a');
+      rect(x + 9, y + 7, 2, 2, '#ffe27a');
+      rect(x + 13, y + 6, 2, 2, '#fff7c2');
+    }
+  }
+
+  function draw() {
+    drawFarBackground();
+    drawSunRays();
+    drawBackgroundFish();
+    drawSandFloor();
+    drawCatfishPair();
+
+    state.fish.filter(f => f.depthLayer === 0).forEach(drawFish);
+    state.fish.filter(f => f.depthLayer === 1).forEach(drawFish);
+    state.fish.filter(f => f.depthLayer === 2).forEach(drawFish);
+
+    drawBubbles();
+    drawFood();
+    drawDirt();
+
+    for (let x = 0; x < W; x += 8) {
+      rect(x, 3 + Math.round(Math.sin(state.time * 0.04 + x * 0.15)), 4, 1, state.night ? '#78b8d322' : '#b8fff02b');
+    }
+
+    drawCursor();
+  }
+
+  function updateFishAI(f) {
+    if (f.caught) return;
+
+    if (f.state === 'belly-up') {
+      f.y -= 0.1;
+      f.x += Math.sin(state.time * 0.02 + f.phase) * 0.1;
+      f.y = Math.max(10, f.y);
+      return;
+    }
+
+    f.stateTimer--;
+    f.tailPhase += 0.1;
+
+    if (f.stateTimer <= 0) {
+      const roll = Math.random();
+      if (f.personality === 'lazy') {
+        if (roll < 0.3) { f.state = 'idle'; f.stateTimer = rand(80, 200); }
+        else { f.state = 'swimming'; f.stateTimer = rand(100, 300); f.targetY = rand(30, 120); }
+      } else {
+        f.state = 'swimming';
+        f.stateTimer = rand(80, 200);
+        f.targetY = rand(30, 120);
+      }
+    }
+
+    if (state.mouseInCanvas && state.mouseY < 150) {
+      const dist = Math.hypot(f.x - state.mouseX, f.y - state.mouseY);
+      const fleeRadius = f.personality === 'timid' ? 45 : f.personality === 'bold' ? 18 : 30;
+      if (dist < fleeRadius && !f.isNaughty) {
+        f.state = 'fleeing';
+        f.stateTimer = 30;
+        f.targetY = f.y + (f.y > state.mouseY ? 15 : -15);
+      }
+    }
+
+    if (state.food.length > 0) {
+      const closest = state.food.reduce((best, food) => {
+        const d = Math.hypot(food.x - f.x, food.y - f.y);
+        return d < best.dist ? { food, dist: d } : best;
+      }, { food: state.food[0], dist: 999 });
+      if (closest.dist < 80) {
+        f.state = 'darting';
+        f.stateTimer = 20;
+        f.targetY = closest.food.y;
+      }
+    }
+
+    let speedMult = 1;
+    let verticalMove = 0;
+
+    switch (f.state) {
+      case 'swimming':
+        speedMult = 1;
+        verticalMove = (f.targetY - f.y) * 0.01;
+        break;
+      case 'idle':
+        speedMult = 0.1;
+        verticalMove = Math.sin(state.time * 0.01 + f.phase) * 0.1;
+        break;
+      case 'darting':
+        speedMult = 2.2;
+        verticalMove = (f.targetY - f.y) * 0.04;
+        break;
+      case 'fleeing':
+        speedMult = 2.8;
+        verticalMove = (f.targetY - f.y) * 0.06;
+        break;
+      case 'turning':
+        speedMult = 0.3;
+        f.turnProgress += 0.05;
+        if (f.turnProgress >= 1) {
+          f.state = 'swimming';
+          f.stateTimer = rand(80, 200);
+          f.turnProgress = 0;
         }
+        break;
+      case 'bitten':
+        speedMult = 1.5;
+        verticalMove = (f.targetY - f.y) * 0.03;
+        f.stateTimer--;
+        if (f.stateTimer <= 0) f.state = 'swimming';
+        break;
+    }
 
-        // ============================================
-        // ПЕЧАТАЮЩИЙСЯ ТЕКСТ
-        // ============================================
-        function typeLetter() {
-            letterText.textContent = '';
-            let index = 0;
-            const speed = 55;
+    f.speed = f.baseSpeed * speedMult;
+    f.x += f.speed * f.dir;
+    f.y += verticalMove + Math.sin(state.time * 0.015 + f.phase) * f.wander * 0.3;
+    f.y = Math.max(15, Math.min(140, f.y));
 
-            typingInterval = setInterval(() => {
-                if (index < letterContent.length) {
-                    const char = letterContent[index];
-                    letterText.textContent += char;
-                    index++;
+    if (f.x > W - 10) {
+      f.state = 'turning';
+      f.turnProgress = 0;
+      f.dir = -1;
+      f.x = W - 10;
+      f.targetY = rand(25, 125);
+    }
+    if (f.x < 10) {
+      f.state = 'turning';
+      f.turnProgress = 0;
+      f.dir = 1;
+      f.x = 10;
+      f.targetY = rand(25, 125);
+    }
+  }
 
-                    if (char !== ' ' && char !== '\n' && char !== '\t') {
-                        playPixelBeep();
-                    }
-                } else {
-                    clearInterval(typingInterval);
-                    typingInterval = null;
+  function updateNaughtyFish() {
+    const nf = state.naughtyFish;
+    if (!nf || nf.caught) return;
 
-                    playCompleteSound();
+    if (state.time % 60 === 0) {
+      nf.targetY = rand(25, 120);
+    }
 
-                    setTimeout(() => {
-                        cursor.classList.add('hidden');
-                    }, 800);
+    const targets = state.fish.filter(f => f !== nf && !f.caught && f.state !== 'belly-up' && f.depthLayer > 0);
+    if (targets.length > 0) {
+      let closest = targets[0];
+      let minDist = 999;
+      for (const t of targets) {
+        const d = Math.hypot(nf.x - t.x, nf.y - t.y);
+        if (d < minDist) { minDist = d; closest = t; }
+      }
 
-                    backBtn.classList.add('visible');
-                }
-            }, speed);
+      if (minDist > 25) {
+        nf.targetY = closest.y;
+        nf.dir = closest.x > nf.x ? 1 : -1;
+        nf.speed = nf.baseSpeed * 1.3;
+      } else {
+        if (state.time % 150 === 0) {
+          closest.biteCount = (closest.biteCount || 0) + 1;
+          closest.state = 'bitten';
+          closest.stateTimer = 40;
+          closest.targetY = closest.y + rand(-25, 25);
+          burst(closest.x, closest.y, 5);
+
+          if (closest.biteCount >= 4) {
+            closest.state = 'belly-up';
+            closest.speed = 0;
+            closest.targetY = 10;
+
+            const fromLeft = Math.random() < 0.5;
+            const newFish = makeFish(
+              fromLeft ? -10 : W + 10,
+              rand(40, 110),
+              closest.scale,
+              fromLeft ? 1 : -1,
+              closest.pal,
+              closest.depthLayer
+            );
+            state.fish.push(newFish);
+          }
         }
+      }
+    } else {
+      nf.speed = nf.baseSpeed;
+    }
 
-        // ============================================
-        // УНИЧТОЖЕНИЕ ПИСЬМА (ОБРАТНЫЙ ОТСЧЁТ + РАСТВОРЕНИЕ)
-        // ============================================
-        backBtn.addEventListener('click', startSelfDestruct);
+    const yDiff = nf.targetY - nf.y;
+    nf.y += yDiff * 0.02;
+    nf.y = Math.max(15, Math.min(140, nf.y));
 
-        function startSelfDestruct() {
-            if (isDissolving) return;
-            isDissolving = true;
+    nf.x += nf.speed * nf.dir;
+    if (nf.x > W - 10) { nf.x = W - 10; nf.dir = -1; nf.targetY = rand(25, 120); }
+    if (nf.x < 10) { nf.x = 10; nf.dir = 1; nf.targetY = rand(25, 120); }
+  }
 
-            backBtn.classList.remove('visible');
+  function update() {
+    state.time++;
 
-            countdownOverlay.classList.add('visible');
+    for (const f of state.fish) {
+      if (!f.isNaughty) updateFishAI(f);
+    }
+    updateNaughtyFish();
 
-            let count = 3;
-            countdownNumber.textContent = count;
-            playCountdownBeep();
+    for (const bf of state.bgFish) {
+      bf.x += bf.speed * bf.dir;
+      if (bf.x > W - 5) { bf.x = W - 5; bf.dir = -1; }
+      if (bf.x < 5) { bf.x = 5; bf.dir = 1; }
+    }
 
-            const countdownInterval = setInterval(() => {
-                count--;
+    state.whaleTimer--;
+    if (state.whaleTimer <= 0 && !state.whaleVisible) {
+      if (Math.random() < 0.002) {
+        state.whaleVisible = true;
+        state.whaleX = -80;
+        state.whaleTimer = rand(600, 1200);
+      }
+    }
+    if (state.whaleVisible) {
+      state.whaleX += 0.15;
+      if (state.whaleX > W + 80) {
+        state.whaleVisible = false;
+        state.whaleTimer = rand(400, 1000);
+      }
+    }
 
-                if (count > 0) {
-                    countdownNumber.textContent = count;
-                    playCountdownBeep();
+    for (const tb of state.thermalBubbles) {
+      tb.y -= tb.speed;
+      if (tb.y < 80) { tb.y = 150; tb.x = rand(40, 280); }
+    }
 
-                    countdownNumber.style.animation = 'none';
-                    void countdownNumber.offsetWidth;
-                    countdownNumber.style.animation = 'countdownPulse 1s ease-in-out infinite';
-                } else if (count === 0) {
-                    countdownNumber.textContent = '0';
-                    playCountdownBeep();
+    for (const b of state.bubbles) {
+      b.y -= b.speed;
+      if (b.y < -5) { b.y = H - 30; b.x = rand(5, W - 5); }
+    }
 
-                    setTimeout(() => {
-                        clearInterval(countdownInterval);
-                        countdownOverlay.classList.remove('visible');
-                        startDissolve();
-                    }, 400);
-                }
-            }, 1000);
+    for (let i = state.food.length - 1; i >= 0; i--) {
+      state.food[i].y += 0.22;
+      state.food[i].x += Math.sin(state.time * 0.08 + i) * 0.1;
+      if (state.food[i].y > 148 || state.time - state.food[i].born > 480) state.food.splice(i, 1);
+    }
+
+    draw();
+    requestAnimationFrame(update);
+  }
+
+  // Event handlers
+  function canvasPoint(e) {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) / r.width * W,
+      y: (e.clientY - r.top) / r.height * H
+    };
+  }
+
+  canvas.addEventListener('pointermove', e => {
+    const p = canvasPoint(e);
+    state.mouseX = p.x;
+    state.mouseY = p.y;
+    state.mouseInCanvas = true;
+
+    if (state.scrubbing && state.tool === 'sponge') {
+      for (const spot of state.dirtSpots) {
+        if (spot.health <= 0) continue;
+        const dist = Math.hypot(spot.x - p.x, spot.y - p.y);
+        if (dist < spot.radius + 14) {
+          spot.health = Math.max(0, spot.health - 4);
         }
+      }
+      checkCompletion();
+    }
+  });
 
-        function startDissolve() {
-            playDissolveSound();
-            createDissolveParticles();
+  canvas.addEventListener('pointerdown', e => {
+    const p = canvasPoint(e);
+    state.mouseX = p.x;
+    state.mouseY = p.y;
+    state.mouseInCanvas = true;
 
-            letterScreen.classList.add('dissolving');
-            document.body.style.animation = 'shake 0.5s ease-in-out';
+    // Check castle click
+    if (p.x > 130 && p.x < 160 && p.y > 128 && p.y < 148) {
+      document.getElementById('giftOverlay').classList.add('show');
+      burst(p.x, p.y, 20);
+      for (let i = 0; i < 8; i++) {
+        state.hearts.push({ x: p.x + rand(-15, 15), y: p.y, life: 80 });
+      }
+      document.getElementById('hint').textContent = '💗 Ты нашла секрет! 💗';
+      return;
+    }
 
-            setTimeout(() => {
-                document.body.style.animation = '';
-
-                letterScreen.classList.remove('dissolving');
-                letterScreen.classList.add('destroyed');
-
-                dissolveParticles.innerHTML = '';
-                letterText.textContent = '';
-                cursor.classList.add('hidden');
-
-                isDissolving = false;
-                isDestroyed = true;
-            }, 1800);
+    if (state.tool === 'sponge') {
+      state.scrubbing = true;
+      for (const spot of state.dirtSpots) {
+        if (spot.health <= 0) continue;
+        const dist = Math.hypot(spot.x - p.x, spot.y - p.y);
+        if (dist < spot.radius + 14) {
+          spot.health = Math.max(0, spot.health - 8);
         }
+      }
+      checkCompletion();
+    } else if (state.tool === 'net') {
+      const nf = state.naughtyFish;
+      if (nf && !nf.caught && Math.hypot(nf.x - p.x, nf.y - p.y) < 29) {
+        nf.caught = true;
+        state.fish = state.fish.filter(f => f !== nf);
+        burst(p.x, p.y, 24);
+        document.getElementById('hint').textContent = 'Поймала! ✦';
+        checkCompletion();
+        return;
+      }
 
-        // ============================================
-        // СОЗДАНИЕ ПИКСЕЛЬНЫХ ЧАСТИЦ
-        // ============================================
-        function createDissolveParticles() {
-            dissolveParticles.innerHTML = '';
+      const bellyUpFish = state.fish.find(f => f.state === 'belly-up' && Math.hypot(f.x - p.x, f.y - p.y) < 20);
+      if (bellyUpFish) {
+        bellyUpFish.caught = true;
+        state.fish = state.fish.filter(f => f !== bellyUpFish);
+        burst(p.x, p.y, 15);
+        document.getElementById('hint').textContent = 'Спасла рыбку! ✦';
+        checkCompletion();
+        return;
+      }
 
-            const frameRect = letterFrame.getBoundingClientRect();
-            const colors = ['#e63946', '#a8202c', '#ffe9a7', '#fbf3dc', '#8a6a44', '#3d2a4f'];
-            const particleCount = 120;
-
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-
-                const x = frameRect.left + Math.random() * frameRect.width;
-                const y = frameRect.top + Math.random() * frameRect.height;
-
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                const sizes = [4, 8, 12];
-                const size = sizes[Math.floor(Math.random() * sizes.length)];
-
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 100 + Math.random() * 300;
-                const tx = Math.cos(angle) * distance;
-                const ty = Math.sin(angle) * distance - 50;
-
-                const delay = Math.random() * 0.4;
-
-                particle.style.left = x + 'px';
-                particle.style.top = y + 'px';
-                particle.style.width = size + 'px';
-                particle.style.height = size + 'px';
-                particle.style.backgroundColor = color;
-                particle.style.opacity = '1';
-                particle.style.transform = 'translate(0, 0)';
-                particle.style.transition = `transform 1.4s cubic-bezier(0.2, 0.8, 0.4, 1) ${delay}s, opacity 1.4s ease ${delay}s`;
-
-                dissolveParticles.appendChild(particle);
-
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        particle.style.transform = `translate(${tx}px, ${ty}px) rotate(${Math.random() * 720}deg)`;
-                        particle.style.opacity = '0';
-                    });
-                });
-            }
+      burst(p.x, p.y, 5);
+      document.getElementById('hint').textContent = 'Промах! ✦';
+    } else if (state.tool === 'feed') {
+      for (let i = 0; i < 10; i++) {
+        state.food.push({ x: p.x + rand(-15, 15), y: p.y + rand(-8, 5), born: state.time });
+      }
+      burst(p.x, p.y, 6);
+      state.feedGiven = true;
+      state.fish.forEach(f => { if (!f.isNaughty) f.speed *= 1.05; });
+      document.getElementById('hint').textContent = 'Рыбки довольны! ✦';
+      checkCompletion();
+    } else {
+      burst(p.x, p.y, 10);
+      for (const f of state.fish) {
+        if (Math.hypot(f.x - p.x, f.y - p.y) < 35) {
+          f.state = 'fleeing';
+          f.stateTimer = 40;
+          f.dir = f.x < p.x ? -1 : 1;
+          f.targetY = Math.max(20, Math.min(130, f.y + (f.y > p.y ? 20 : -20)));
         }
+      }
+      document.getElementById('hint').textContent = 'Выбери инструмент ✦';
+    }
+  });
 
-        // ============================================
-        // РАЗБЛОКИРОВКА ЗВУКА
-        // ============================================
-        document.addEventListener('click', () => {
-            initAudio();
-        }, { once: true });
+  canvas.addEventListener('pointerup', () => { state.scrubbing = false; });
+  canvas.addEventListener('pointerenter', () => { state.mouseInCanvas = true; });
+  canvas.addEventListener('pointerleave', () => { state.mouseInCanvas = false; state.scrubbing = false; });
 
-        // ============================================
-        // АНИМАЦИЯ ТРЯСКИ ЭКРАНА
-        // ============================================
-        const shakeStyle = document.createElement('style');
-        shakeStyle.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translate(0, 0) rotate(0deg); }
-                10% { transform: translate(-4px, 2px) rotate(-0.5deg); }
-                20% { transform: translate(4px, -2px) rotate(0.5deg); }
-                30% { transform: translate(-4px, -2px) rotate(-0.3deg); }
-                40% { transform: translate(4px, 2px) rotate(0.3deg); }
-                50% { transform: translate(-3px, 1px) rotate(-0.4deg); }
-                60% { transform: translate(3px, -1px) rotate(0.4deg); }
-                70% { transform: translate(-2px, 2px) rotate(-0.2deg); }
-                80% { transform: translate(2px, -2px) rotate(0.2deg); }
-                90% { transform: translate(-1px, 1px) rotate(0deg); }
-            }
-        `;
-        document.head.appendChild(shakeStyle);
-    </script>
+  canvas.addEventListener('dblclick', () => {
+    state.night = !state.night;
+    document.getElementById('nightHint').textContent = state.night ? '☀ dbl-click' : '☾ dbl-click';
+  });
+
+  // Tool buttons
+  document.getElementById('btnSponge').addEventListener('click', () => {
+    state.tool = 'sponge';
+    document.getElementById('hint').textContent = 'Зажми и три грязные пятна ✦';
+    document.querySelectorAll('.tools button').forEach(b => b.className = '');
+    document.getElementById('btnSponge').className = 'active-sponge';
+  });
+
+  document.getElementById('btnNet').addEventListener('click', () => {
+    state.tool = 'net';
+    document.getElementById('hint').textContent = 'Нажми на красную рыбку или рыбку кверху брюхом ✦';
+    document.querySelectorAll('.tools button').forEach(b => b.className = '');
+    document.getElementById('btnNet').className = 'active-net';
+  });
+
+  document.getElementById('btnFeed').addEventListener('click', () => {
+    state.tool = 'feed';
+    document.getElementById('hint').textContent = 'Кликни по воде, чтобы покормить ✦';
+    document.querySelectorAll('.tools button').forEach(b => b.className = '');
+    document.getElementById('btnFeed').className = 'active-feed';
+  });
+
+  // Gift box
+  document.getElementById('giftBox').addEventListener('click', () => {
+    document.getElementById('giftContent').innerHTML = `
+      <div class="gift-card">
+        <div class="sparkle">✨</div>
+        <div class="sparkle">✨</div>
+        <div class="sparkle">✨</div>
+        <div class="sparkle">✨</div>
+        <div class="gift-emoji">💝</div>
+        <h2 class="gift-title">Привет, рыбка! 🐠</h2>
+        <p class="gift-text">
+          Ты такая горячая, что я растаял как лёд в океане! 🌊<br>
+          Давай устроим подводную вечеринку?<br>
+          Обещаю: будет мокро и весело! 💦😏
+        </p>
+        <div class="achievement">
+          <div class="achievement-icon">🏆</div>
+          <div>
+            <div class="achievement-label">ДОСТИЖЕНИЕ РАЗБЛОКИРОВАНО!</div>
+            <div class="achievement-title">Самая сексуальная рыбка аквариума</div>
+            <div class="achievement-desc">Нашла секретного моллюска и не испугалась 😉</div>
+          </div>
+        </div>
+        <button class="close-btn" onclick="document.getElementById('giftOverlay').classList.remove('show')">Закрыть 💗</button>
+      </div>
+    `;
+  });
+
+  document.getElementById('giftOverlay').addEventListener('click', e => {
+    if (e.target.id === 'giftOverlay') {
+      document.getElementById('giftOverlay').classList.remove('show');
+    }
+  });
+
+  // Start
+  showQuest();
+  setInterval(checkCompletion, 500);
+  update();
+})();
+</script>
 </body>
 </html>
