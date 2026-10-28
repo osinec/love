@@ -708,12 +708,24 @@
     if (molluskVisible) {
       const molluskX = castleX + 14;
       const molluskY = castleY + 2;
+      
+      // Base body
       rect(molluskX, molluskY, 3, 2, '#d4a574');
       rect(molluskX + 1, molluskY - 1, 1, 1, '#e4b584');
-      rect(molluskX, molluskY - 2, 1, 1, '#c4956a');
-      rect(molluskX + 2, molluskY - 2, 1, 1, '#c4956a');
-      rect(molluskX, molluskY - 3, 1, 1, '#000000');
-      rect(molluskX + 2, molluskY - 3, 1, 1, '#000000');
+      
+      // Animated eyes/stalks
+      const wave = Math.sin(state.time * 0.2);
+      if (wave > 0) {
+         // Look up/out
+         rect(molluskX, molluskY - 2, 1, 1, '#c4956a');
+         rect(molluskX + 2, molluskY - 2, 1, 1, '#c4956a');
+         rect(molluskX, molluskY - 3, 1, 1, '#000000');
+         rect(molluskX + 2, molluskY - 3, 1, 1, '#000000');
+      } else {
+         // Look down/in
+         rect(molluskX, molluskY - 1, 1, 1, '#c4956a');
+         rect(molluskX + 2, molluskY - 1, 1, 1, '#c4956a');
+      }
     }
   }
 
@@ -1299,13 +1311,6 @@
         <div class="sparkle">✨</div>
         <div class="sparkle">✨</div>
         <div class="sparkle">✨</div>
-        <div class="gift-emoji">💝</div>
-        <h2 class="gift-title">Привет, рыбка! 🐠</h2>
-        <p class="gift-text">
-          Ты такая горячая, что я растаял как лёд в океане! 🌊<br>
-          Давай устроим подводную вечеринку?<br>
-          Обещаю: будет мокро и весело! 💦😏
-        </p>
         <div class="achievement">
           <div class="achievement-icon">🏆</div>
           <div>
