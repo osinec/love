@@ -2,338 +2,686 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Бориска</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Борис любит ласку ❤️</title>
+
 <style>
-  * {
-    margin: 0;
-    padding: 0;
+* {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
-    user-select: none;
-  }
+}
 
-  body {
-    background: linear-gradient(180deg, #fff0f5 0%, #ffe4e9 40%, #ffd6e0 100%);
-    height: 100vh;
+body {
+    margin: 0;
     overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-  }
+    font-family: Georgia, serif;
+    background: #f8dce0;
+    user-select: none;
+}
 
-  /* Верхняя надпись */
-  #top-text {
-    margin-top: 28px;
-    padding: 0 20px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: 600;
-    color: #d46a8c;
-    line-height: 1.4;
-    text-shadow: 0 1px 0 #fff;
-    z-index: 10;
-  }
-
-  /* Игровое поле */
-  #game {
-    flex: 1;
+.game {
+    height: 100dvh;
     width: 100%;
     position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+    overflow: hidden;
+    background: linear-gradient(#f5d9df, #fbe9d8);
+}
 
-  /* Кот */
-  #cat {
-    position: relative;
-    font-size: 110px;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform-origin: center bottom;
-    z-index: 5;
-    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12));
-  }
+/* КОМНАТА */
 
-  /* Спокойная анимация ходьбы */
-  #cat.walking {
-    animation: walk 2.8s ease-in-out infinite;
-  }
-
-  @keyframes walk {
-    0%, 100% { transform: translateX(-12px) rotate(-3deg); }
-    50%      { transform: translateX(12px) rotate(3deg); }
-  }
-
-  /* Когда гладят / кормят */
-  #cat.happy {
-    animation: happy 0.6s ease;
-  }
-
-  @keyframes happy {
-    0%   { transform: scale(1) rotate(0); }
-    30%  { transform: scale(1.15) rotate(-8deg); }
-    60%  { transform: scale(1.1) rotate(8deg); }
-    100% { transform: scale(1) rotate(0); }
-  }
-
-  /* Боковые инструменты */
-  .tool {
+.wall {
     position: absolute;
-    width: 64px;
-    height: 64px;
+    inset: 0 0 30% 0;
+    background-color: #f8e1e1;
+    background-image:
+    radial-gradient(#eabfc8 1.5px, transparent 1.5px);
+    background-size: 27px 27px;
+}
+
+.floor {
+    position: absolute;
+    bottom: 0;
+    height: 32%;
+    width: 100%;
+    background: repeating-linear-gradient(
+        90deg,
+        #c98d70,
+        #c98d70 55px,
+        #d9a185 56px,
+        #d9a185 110px
+    );
+    border-top: 9px solid #b77c66;
+}
+
+/* ОКНО */
+
+.window {
+    position: absolute;
+    top: 14%;
+    left: 7%;
+    width: 33%;
+    height: 27%;
+    background: linear-gradient(#b9e5f3, #e4f5f5);
+    border: 12px solid #fff4e8;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px #ae7f7255;
+}
+
+.window:before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 7px;
+    height: 100%;
+    background: #fff4e8;
+}
+
+.window:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    height: 7px;
+    width: 100%;
+    background: #fff4e8;
+}
+
+.sun {
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    background: #ffe79b;
     border-radius: 50%;
-    background: white;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    z-index: 20;
-  }
+    top: 12%;
+    right: 15%;
+    box-shadow: 0 0 30px #ffe79b;
+}
 
-  .tool:active {
-    transform: scale(0.9);
-  }
+/* ШТОРЫ */
 
-  #comb {
-    left: 18px;
-    top: 42%;
-  }
-
-  #bowl {
-    right: 18px;
-    top: 42%;
-  }
-
-  /* Кнопка погладить */
-  #pet-btn {
+.curtain {
     position: absolute;
-    bottom: 40px;
+    top: 12%;
+    left: 4%;
+    width: 8%;
+    height: 31%;
+    background: #e9a6b6;
+    border-radius: 0 0 30px 30px;
+}
+
+.curtain.right {
+    left: 35%;
+}
+
+/* КОВЁР */
+
+.rug {
+    position: absolute;
+    bottom: 9%;
+    left: 15%;
+    width: 70%;
+    height: 23%;
+    background: #e7a9b0;
+    border-radius: 50%;
+    border: 8px dashed #f7d4d2;
+    box-shadow: inset 0 0 0 5px #d98e9b;
+}
+
+/* МЕБЕЛЬ */
+
+.shelf {
+    position: absolute;
+    right: 4%;
+    top: 26%;
+    width: 20%;
+    height: 8%;
+    background: #b77c66;
+    border-radius: 5px;
+    box-shadow: 0 8px 0 #925e4e;
+}
+
+.plant {
+    position: absolute;
+    right: 8%;
+    top: 17%;
+    font-size: 38px;
+}
+
+.picture {
+    position: absolute;
+    right: 9%;
+    top: 7%;
+    width: 17%;
+    height: 14%;
+    border: 7px solid #bd8966;
+    background: #fff0ce;
+    border-radius: 5px;
+    display: grid;
+    place-items: center;
+    font-size: 28px;
+}
+
+/* НАДПИСЬ */
+
+.header {
+    position: absolute;
+    top: 2%;
+    width: 100%;
+    text-align: center;
+    z-index: 10;
+    padding: 0 10px;
+    color: #9e536b;
+    text-shadow: 1px 2px white;
+}
+
+.header h2 {
+    font-size: clamp(19px, 5vw, 27px);
+    margin: 5px;
+}
+
+.header p {
+    font-size: 14px;
+    margin: 5px;
+}
+
+/* КОТ */
+
+.cat-container {
+    position: absolute;
+    width: 76%;
+    max-width: 340px;
+    height: 300px;
+    bottom: 19%;
     left: 50%;
     transform: translateX(-50%);
-    background: #ff8fab;
-    color: white;
-    border: none;
-    padding: 16px 36px;
-    border-radius: 50px;
-    font-size: 18px;
-    font-weight: 600;
-    box-shadow: 0 6px 20px rgba(255, 143, 171, 0.4);
-    cursor: pointer;
+    z-index: 5;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%,100% { transform: translate(-50%,0); }
+    50% { transform: translate(-50%,-7px); }
+}
+
+.cat {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.body-cat {
+    transform-origin: 160px 210px;
+    transition: transform .5s ease;
+}
+
+.tail {
+    transform-origin: 250px 210px;
+    animation: tail 2s ease-in-out infinite;
+}
+
+@keyframes tail {
+    0%,100% { transform: rotate(-8deg); }
+    50% { transform: rotate(13deg); }
+}
+
+.ear {
+    fill: #c8793e;
+}
+
+.eye {
+    animation: blink 4s infinite;
+    transform-origin: center;
+}
+
+@keyframes blink {
+    0%,46%,50%,100% { transform: scaleY(1); }
+    48% { transform: scaleY(.1); }
+}
+
+/* ИНСТРУМЕНТЫ */
+
+.tools {
+    position: absolute;
+    bottom: 2%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
     z-index: 20;
-    transition: transform 0.15s;
-  }
+    padding: 0 8px;
+}
 
-  #pet-btn:active {
-    transform: translateX(-50%) scale(0.95);
-  }
-
-  /* Счётчик */
-  #counter {
-    position: absolute;
-    top: 90px;
-    right: 20px;
-    background: rgba(255,255,255,0.7);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 14px;
-    color: #c25a7a;
-    font-weight: 600;
-  }
-
-  /* Финальный экран */
-  #final {
-    position: absolute;
-    inset: 0;
-    background: #fff0f5;
-    display: none;
+.tool {
+    width: 29%;
+    max-width: 115px;
+    height: 83px;
+    background: #fff8f0;
+    border: 3px solid #efc1c8;
+    border-radius: 22px;
+    box-shadow: 0 5px 0 #d9a0a9;
+    font-size: 32px;
+    cursor: pointer;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 100;
-    overflow: hidden;
-  }
+    color: #98586c;
+    transition: .15s;
+}
 
-  #final-text {
-    font-size: 24px;
-    font-weight: 700;
-    color: #d46a8c;
-    text-align: center;
-    padding: 0 30px;
-    line-height: 1.5;
-    z-index: 10;
-    animation: fadeIn 1.2s ease;
-  }
+.tool span {
+    font-size: 12px;
+    margin-top: 4px;
+}
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+.tool:active {
+    transform: translateY(5px);
+    box-shadow: none;
+}
 
-  /* Сердечки */
-  .heart {
+/* СЧЁТЧИК */
+
+.counter {
     position: absolute;
-    font-size: 28px;
-    animation: floatUp 3.5s ease-in forwards;
+    top: 12%;
+    right: 5%;
+    z-index: 15;
+    background: #fff7ef;
+    color: #a54c69;
+    border: 2px solid #efb7c2;
+    padding: 9px 13px;
+    border-radius: 20px;
+    font-size: 15px;
+    box-shadow: 0 3px 7px #a56a6a33;
+}
+
+/* СООБЩЕНИЕ */
+
+.message {
+    position: absolute;
+    z-index: 12;
+    bottom: 34%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff8ef;
+    color: #a44d69;
+    border-radius: 20px;
+    padding: 10px 18px;
+    font-size: 15px;
+    white-space: nowrap;
+    box-shadow: 0 3px 12px #89565a33;
+}
+
+/* СЕРДЕЧКИ */
+
+.heart {
+    position: absolute;
     pointer-events: none;
-    opacity: 0.9;
-  }
+    z-index: 50;
+    animation: heartUp 1.4s ease-out forwards;
+}
 
-  @keyframes floatUp {
+@keyframes heartUp {
     0% {
-      transform: translateY(0) scale(0.6) rotate(0deg);
-      opacity: 0;
+        transform: translateY(0) scale(.5) rotate(0);
+        opacity: 1;
     }
-    15% { opacity: 1; }
     100% {
-      transform: translateY(-120vh) scale(1.4) rotate(360deg);
-      opacity: 0;
+        transform: translateY(-180px) scale(1.5) rotate(30deg);
+        opacity: 0;
     }
-  }
+}
 
-  /* Взрыв кота */
-  #cat.explode {
-    animation: explode 0.8s ease-out forwards;
-  }
+/* ФИНАЛ */
 
-  @keyframes explode {
-    0%   { transform: scale(1); opacity: 1; }
-    50%  { transform: scale(1.8) rotate(15deg); opacity: 0.8; }
-    100% { transform: scale(0) rotate(40deg); opacity: 0; }
-  }
+.final {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    background: #f8dce8;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    overflow: hidden;
+    padding: 25px;
+}
+
+.final h1 {
+    color: #b84e76;
+    font-size: clamp(30px, 8vw, 44px);
+    text-shadow: 2px 3px white;
+    animation: appear 2s ease;
+    z-index: 3;
+}
+
+.final p {
+    font-size: 24px;
+    color: #bd6784;
+    z-index: 3;
+}
+
+.final-heart {
+    position: absolute;
+    font-size: 35px;
+    animation: rain 4s linear infinite;
+}
+
+@keyframes rain {
+    from { transform: translateY(-100px) rotate(0); }
+    to { transform: translateY(110vh) rotate(360deg); }
+}
+
+@keyframes appear {
+    from { opacity: 0; transform: scale(.3); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@media(max-height:650px) {
+    .cat-container { bottom: 16%; height: 240px; }
+    .tools { bottom: 1%; }
+    .tool { height: 68px; }
+}
 </style>
 </head>
+
 <body>
 
-  <div id="top-text">Борис любит, когда его ласкают и ухаживают</div>
-  <div id="counter">Ласк: 0 / 12</div>
+<div class="game" id="game">
 
-  <div id="game">
-    <div id="cat" class="walking">🐱</div>
+    <div class="wall"></div>
+    <div class="floor"></div>
 
-    <div class="tool" id="comb" title="Расчесать">🪮</div>
-    <div class="tool" id="bowl" title="Покормить">🥣</div>
+    <div class="sun"></div>
+    <div class="window"></div>
+    <div class="curtain"></div>
+    <div class="curtain right"></div>
 
-    <button id="pet-btn">Погладить Бориску</button>
-  </div>
+    <div class="picture">🐱</div>
+    <div class="plant">🪴</div>
+    <div class="shelf"></div>
 
-  <div id="final">
-    <div id="final-text">Бориска растворился<br>в твоей любви<br>как я 💕</div>
-  </div>
+    <div class="header">
+        <h2>Борис любит когда его ласкают и ухаживают ❤️</h2>
+        <p>Побалуй маленького Бориску!</p>
+    </div>
+
+    <div class="counter" id="counter">
+        💗 Ласки: 0 / 12
+    </div>
+
+    <div class="rug"></div>
+
+    <div class="cat-container" id="catContainer">
+
+        <svg class="cat" viewBox="0 0 320 300">
+
+            <!-- ХВОСТ -->
+            <g class="tail">
+                <path d="M235 207 Q295 180 285 130 Q275 100 255 120"
+                fill="none" stroke="#bd753f"
+                stroke-width="23" stroke-linecap="round"/>
+                <path d="M280 132 Q275 118 260 123"
+                stroke="#f4d1ad" stroke-width="8"
+                fill="none" stroke-linecap="round"/>
+            </g>
+
+            <g class="body-cat" id="bodyCat">
+
+                <!-- ТЕЛО -->
+                <ellipse cx="158" cy="211" rx="92" ry="67"
+                fill="#dc995c" stroke="#a9693f" stroke-width="3"/>
+
+                <!-- ЖИВОТИК -->
+                <ellipse cx="165" cy="220" rx="58" ry="49"
+                fill="#f7dcbf"/>
+
+                <!-- ПОЛОСКИ -->
+                <path d="M100 165 Q115 182 130 169"
+                stroke="#a9693f" stroke-width="7"
+                fill="none" stroke-linecap="round"/>
+
+                <path d="M160 151 Q172 174 190 158"
+                stroke="#a9693f" stroke-width="7"
+                fill="none" stroke-linecap="round"/>
+
+                <path d="M208 170 Q225 187 238 170"
+                stroke="#a9693f" stroke-width="7"
+                fill="none" stroke-linecap="round"/>
+
+                <!-- ЛАПЫ -->
+                <ellipse cx="100" cy="257" rx="27" ry="17"
+                fill="#f1cba8" stroke="#a9693f" stroke-width="2"/>
+
+                <ellipse cx="207" cy="257" rx="27" ry="17"
+                fill="#f1cba8" stroke="#a9693f" stroke-width="2"/>
+
+                <path d="M94 255 L94 264 M105 255 L105 264"
+                stroke="#b47c59" stroke-width="2"/>
+
+                <path d="M201 255 L201 264 M212 255 L212 264"
+                stroke="#b47c59" stroke-width="2"/>
+
+                <!-- ГОЛОВА -->
+                <ellipse cx="158" cy="104" rx="76" ry="70"
+                fill="#e4a365" stroke="#a9693f" stroke-width="3"/>
+
+                <!-- УШИ -->
+                <path class="ear" d="M93 70 L85 8 L139 49 Z"/>
+                <path class="ear" d="M178 48 L226 8 L222 78 Z"/>
+
+                <path d="M97 49 L94 22 L121 48 Z"
+                fill="#efb0a7"/>
+
+                <path d="M191 48 L216 24 L214 60 Z"
+                fill="#efb0a7"/>
+
+                <!-- ПОЛОСЫ НА ЛБУ -->
+                <path d="M145 45 Q155 60 165 45"
+                fill="none" stroke="#a9693f"
+                stroke-width="6" stroke-linecap="round"/>
+
+                <path d="M125 55 L135 65 M177 55 L187 65"
+                stroke="#a9693f" stroke-width="5"
+                stroke-linecap="round"/>
+
+                <!-- ГЛАЗА -->
+                <g class="eye">
+                    <ellipse cx="126" cy="100" rx="12" ry="15"
+                    fill="#55765b"/>
+                    <ellipse cx="190" cy="100" rx="12" ry="15"
+                    fill="#55765b"/>
+
+                    <ellipse cx="129" cy="100" rx="4" ry="9"
+                    fill="#252b25"/>
+                    <ellipse cx="193" cy="100" rx="4" ry="9"
+                    fill="#252b25"/>
+
+                    <circle cx="123" cy="94" r="4" fill="white"/>
+                    <circle cx="187" cy="94" r="4" fill="white"/>
+                </g>
+
+                <!-- ЩЁЧКИ -->
+                <ellipse cx="107" cy="119" rx="18" ry="10"
+                fill="#edaa9e" opacity=".7"/>
+
+                <ellipse cx="208" cy="119" rx="18" ry="10"
+                fill="#edaa9e" opacity=".7"/>
+
+                <!-- МОРДОЧКА -->
+                <ellipse cx="158" cy="128" rx="27" ry="19"
+                fill="#f9e3cf"/>
+
+                <!-- НОС -->
+                <path d="M151 120 Q158 114 165 120 Q158 131 151 120"
+                fill="#c77b85"/>
+
+                <!-- РОТИК -->
+                <path d="M158 129 Q149 140 142 132 M158 129 Q167 140 174 132"
+                stroke="#71483e" stroke-width="2.5"
+                fill="none" stroke-linecap="round"/>
+
+                <!-- УСЫ -->
+                <path d="M125 126 L83 119 M126 134 L83 140
+                         M191 126 L233 119 M190 134 L233 140"
+                stroke="#805a48" stroke-width="2"
+                stroke-linecap="round"/>
+
+            </g>
+        </svg>
+
+    </div>
+
+    <div class="message" id="message">
+        Муррр... погладь меня 💕
+    </div>
+
+    <!-- КНОПКИ -->
+
+    <div class="tools">
+
+        <button class="tool" onclick="care('pet')">
+            ✋
+            <span>Гладить</span>
+        </button>
+
+        <button class="tool" onclick="care('brush')">
+            🪮
+            <span>Расчёска</span>
+        </button>
+
+        <button class="tool" onclick="care('food')">
+            🥣
+            <span>Покормить</span>
+        </button>
+
+    </div>
+
+</div>
+
+<!-- ФИНАЛЬНЫЙ ЭКРАН -->
+
+<div class="final" id="final">
+    <h1>Бориска растворился в твоей любви, как я</h1>
+    <p>❤️ ❤️ ❤️</p>
+    <div style="font-size:95px; animation:appear 2s;">🐱</div>
+    <p>Спасибо за всю эту нежность...</p>
+</div>
 
 <script>
-  const cat = document.getElementById('cat');
-  const counterEl = document.getElementById('counter');
-  const finalScreen = document.getElementById('final');
-  const petBtn = document.getElementById('pet-btn');
-  const comb = document.getElementById('comb');
-  const bowl = document.getElementById('bowl');
 
-  let cares = 0;
-  const maxCares = 12;
+let affection = 0;
 
-  // Базовый размер
-  let scale = 1;
+const messages = {
+    pet: [
+        "Мурррр... как приятно! 💗",
+        "Погладь меня ещё...",
+        "Я тебя очень люблю!",
+        "У Бориса настроение стало лучше!",
+        "Мрррррр...",
+        "Какие нежные ручки!",
+        "Борис счастлив ❤️"
+    ],
 
-  function updateCat() {
-    // С каждой лаской становится чуть толще
-    scale = 1 + (cares * 0.085);
-    cat.style.transform = `scale(${scale})`;
-    counterEl.textContent = `Ласк: ${cares} / ${maxCares}`;
-  }
+    brush: [
+        "Ой, как красиво!",
+        "Мне нравится причёсываться!",
+        "Я самый красивый кот!",
+        "Мур-мур, продолжай!",
+        "Шёрстка стала пушистее!"
+    ],
 
-  function doCare(type) {
-    if (cares >= maxCares) return;
+    food: [
+        "Ням-ням! Очень вкусно!",
+        "Спасибо за вкусняшку!",
+        "Ещё немножечко!",
+        "Борис доволен!",
+        "Какой вкусный обед!"
+    ]
+};
 
-    cares++;
-    updateCat();
+function care(type) {
 
-    // Анимация радости
-    cat.classList.remove('walking', 'happy');
-    void cat.offsetWidth; // restart animation
-    cat.classList.add('happy');
+    if (affection >= 12) return;
 
-    // После анимации снова ходим
-    setTimeout(() => {
-      if (cares < maxCares) {
-        cat.classList.remove('happy');
-        cat.classList.add('walking');
-      }
-    }, 600);
+    affection++;
 
-    // Небольшой звук-эффект (вибрация на телефоне)
-    if (navigator.vibrate) navigator.vibrate(30);
+    document.getElementById("counter").innerText =
+        "💗 Ласки: " + affection + " / 12";
 
-    // Если достигли 12
-    if (cares >= maxCares) {
-      setTimeout(explode, 700);
-    }
-  }
+    let list = messages[type];
 
-  function explode() {
-    // Убираем инструменты
-    petBtn.style.display = 'none';
-    comb.style.display = 'none';
-    bowl.style.display = 'none';
-    counterEl.style.display = 'none';
-    document.getElementById('top-text').style.display = 'none';
+    document.getElementById("message").innerText =
+        list[Math.floor(Math.random() * list.length)];
 
-    // Взрыв кота
-    cat.classList.remove('walking', 'happy');
-    cat.classList.add('explode');
+    // БОРИС СТАНОВИТСЯ ПУШИСТЕЕ И ТОЛЩЕ
 
-    // Запускаем сердечки
-    setTimeout(() => {
-      finalScreen.style.display = 'flex';
-      spawnHearts();
-    }, 600);
-  }
+    let growth = 1 + affection * 0.045;
 
-  function spawnHearts() {
-    const hearts = ['💖', '💕', '💗', '💓', '💘', '❤️', '🧡', '💛', '💚', '💙', '💜', '🤍'];
-    
-    for (let i = 0; i < 60; i++) {
-      setTimeout(() => {
-        const h = document.createElement('div');
-        h.className = 'heart';
-        h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-        h.style.left = Math.random() * 100 + 'vw';
-        h.style.bottom = '-40px';
-        h.style.fontSize = (20 + Math.random() * 28) + 'px';
-        h.style.animationDuration = (2.8 + Math.random() * 2.2) + 's';
-        document.body.appendChild(h);
+    document.getElementById("bodyCat").style.transform =
+        `scale(${growth}, ${1 + affection * 0.025})`;
 
-        // Удаляем после анимации
-        setTimeout(() => h.remove(), 5500);
-      }, i * 80);
+    // СЕРДЕЧКИ
+
+    for (let i = 0; i < 5; i++) {
+
+        let heart = document.createElement("div");
+
+        heart.className = "heart";
+
+        heart.innerText = ["💗","💕","❤️","💖"][
+            Math.floor(Math.random() * 4)
+        ];
+
+        heart.style.left = (35 + Math.random() * 35) + "%";
+        heart.style.top = (40 + Math.random() * 25) + "%";
+
+        document.getElementById("game").appendChild(heart);
+
+        setTimeout(() => heart.remove(), 1500);
     }
 
-    // Продолжаем сыпать сердечки
-    setInterval(() => {
-      const h = document.createElement('div');
-      h.className = 'heart';
-      h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-      h.style.left = Math.random() * 100 + 'vw';
-      h.style.bottom = '-40px';
-      h.style.fontSize = (18 + Math.random() * 24) + 'px';
-      h.style.animationDuration = (3 + Math.random() * 2) + 's';
-      document.body.appendChild(h);
-      setTimeout(() => h.remove(), 5500);
-    }, 400);
-  }
+    // ПОСЛЕДНЯЯ ЛАСКА
 
-  // Обработчики
-  petBtn.addEventListener('click', () => doCare('pet'));
-  comb.addEventListener('click', () => doCare('comb'));
-  bowl.addEventListener('click', () => doCare('bowl'));
+    if (affection === 12) {
 
-  // Можно также гладить прямо по коту
-  cat.addEventListener('click', () => doCare('pet'));
+        document.getElementById("message").innerText =
+            "Борис переполнен любовью!!! ❤️";
+
+        setTimeout(finalScene, 1000);
+    }
+}
+
+function finalScene() {
+
+    document.getElementById("game").style.display = "none";
+
+    const final = document.getElementById("final");
+
+    final.style.display = "flex";
+
+    // МОРЕ СЕРДЕЧЕК
+
+    for (let i = 0; i < 65; i++) {
+
+        let heart = document.createElement("div");
+
+        heart.className = "final-heart";
+
+        heart.innerText = ["❤️","💗","💕","💖","💘","💝"][
+            Math.floor(Math.random() * 6)
+        ];
+
+        heart.style.left = Math.random() * 100 + "%";
+        heart.style.top = Math.random() * 100 + "%";
+
+        heart.style.animationDelay = Math.random() * 4 + "s";
+
+        final.appendChild(heart);
+    }
+}
+
 </script>
+
 </body>
 </html>
