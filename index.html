@@ -3,218 +3,655 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Ты моя звезда</title>
+<title>Ты моя звезда ✨</title>
 <style>
-* {
-  box-sizing: border-box;
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    background:#02030b; color:white; font-family:Arial, sans-serif;
+    overflow:hidden; touch-action:none;
 }
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: #02030b;
-  touch-action: none;
+#universe {
+    position:fixed; inset:0; overflow:hidden;
+    background:radial-gradient(circle at center,#10152d,#02030b 85%);
 }
-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+#stars {
+    position:absolute; inset:0; width:100%; height:100%;
+    z-index:1; pointer-events:none;
 }
-.hint {
-  position: fixed;
-  bottom: 35px;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  color: rgba(220,230,255,.65);
-  font: 13px Arial, sans-serif;
-  letter-spacing: 2px;
-  pointer-events: none;
+#scene {
+    position:absolute; inset:0; z-index:2;
+    pointer-events:none;
+    overflow:hidden;
+}
+
+.layer {
+    position:absolute; left:50%; top:50%;
+    width:200px; height:200px;
+    margin:-100px 0 0 -100px;
+    transform-origin:center center;
+}
+
+.planet-sphere {
+    position:absolute; inset:0;
+    border-radius:50%;
+    background:#555;
+    box-shadow:
+        inset -22px -14px 45px rgba(0,0,0,.85),
+        inset -8px -6px 22px rgba(0,0,0,.65),
+        inset 12px 8px 30px rgba(255,255,255,.12),
+        0 0 40px rgba(120,160,255,.12);
+}
+.planet-sphere::after {
+    content:""; position:absolute; inset:0; border-radius:50%;
+    background:radial-gradient(
+        circle at 38% 34%,
+        rgba(255,255,255,.06) 0%,
+        rgba(255,255,255,0) 30%,
+        rgba(0,0,0,0) 55%,
+        rgba(0,0,0,.45) 85%,
+        rgba(0,0,0,.82) 100%
+    );
+    pointer-events:none; z-index:5;
+}
+.planet-sphere::before {
+    content:""; position:absolute; inset:0; border-radius:50%;
+    background:radial-gradient(
+        circle at 34% 30%,
+        rgba(255,255,255,.38) 0%,
+        rgba(255,255,255,.12) 10%,
+        rgba(255,255,255,0) 28%
+    );
+    pointer-events:none; z-index:6;
+}
+.surface {
+    position:absolute; inset:0; border-radius:50%;
+    background-color:#555;
+    z-index:1;
+}
+
+/* МЕРКУРИЙ */
+.mercury.planet-sphere { background:#5a554f; }
+.mercury .surface {
+    background-color:#7a756e;
+    background-image:
+        radial-gradient(circle at 22% 28%, rgba(0,0,0,.45) 0 4%, rgba(180,175,165,.2) 5% 7%, transparent 8%),
+        radial-gradient(circle at 68% 62%, rgba(0,0,0,.5) 0 5%, rgba(200,195,185,.15) 6% 8%, transparent 9%),
+        radial-gradient(circle at 40% 74%, rgba(0,0,0,.4) 0 3%, transparent 4%),
+        radial-gradient(circle at 78% 24%, rgba(0,0,0,.35) 0 3%, transparent 4%),
+        radial-gradient(circle at 15% 60%, rgba(0,0,0,.35) 0 2%, transparent 3%),
+        radial-gradient(circle at 50% 42%, #b8b2a6 0%, #8f897f 40%, #5a554f 75%, #2e2b27 100%);
+}
+
+/* ВЕНЕРА */
+.venus.planet-sphere { background:#b4793c; }
+.venus .surface {
+    background-color:#d29b52;
+    background-image:
+        radial-gradient(ellipse 60% 35% at 30% 35%, rgba(255,245,215,.5) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 30% at 70% 60%, rgba(255,230,180,.4) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 25% at 55% 25%, rgba(255,250,225,.35) 0%, transparent 70%),
+        repeating-linear-gradient(115deg, transparent 0 8px, rgba(255,240,200,.15) 10px, transparent 20px 30px),
+        radial-gradient(circle at 40% 35%, #f6d896 0%, #e0b268 35%, #b4793c 65%, #6e4520 90%, #3a2410 100%);
+}
+
+/* ЗЕМЛЯ */
+.earth.planet-sphere { background:#1f6fb8; }
+.earth .surface {
+    background-color:#1f6fb8;
+    background-image:
+        radial-gradient(ellipse 22% 18% at 32% 38%, #4b8a3a 0%, #386b2b 60%, transparent 71%),
+        radial-gradient(ellipse 16% 22% at 30% 62%, #4f8f3c 0%, transparent 70%),
+        radial-gradient(ellipse 20% 14% at 62% 30%, #5b9a44 0%, transparent 68%),
+        radial-gradient(ellipse 18% 22% at 68% 65%, #4a8038 0%, transparent 70%),
+        radial-gradient(ellipse 10% 8% at 52% 52%, #6aa84f 0%, transparent 75%),
+        radial-gradient(ellipse 30% 8% at 50% 5%, rgba(255,255,255,.9) 0%, transparent 100%),
+        radial-gradient(ellipse 30% 8% at 50% 95%, rgba(255,255,255,.85) 0%, transparent 100%),
+        radial-gradient(circle at 38% 35%, #4a9fe0 0%, #1f6fb8 40%, #0d3f78 70%, #061e42 100%);
+}
+.earth .clouds {
+    position:absolute; inset:-10px; border-radius:50%;
+    background-image:
+        radial-gradient(ellipse 35% 12% at 30% 30%, rgba(255,255,255,.5) 0%, transparent 70%),
+        radial-gradient(ellipse 25% 10% at 65% 45%, rgba(255,255,255,.4) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 9% at 45% 70%, rgba(255,255,255,.35) 0%, transparent 70%),
+        radial-gradient(ellipse 20% 8% at 75% 25%, rgba(255,255,255,.3) 0%, transparent 70%);
+    z-index:2; pointer-events:none;
+}
+.earth .atmosphere {
+    position:absolute; inset:-8px; border-radius:50%;
+    box-shadow:
+        inset 0 0 25px rgba(120,190,255,.55),
+        inset 0 0 60px rgba(80,140,255,.35),
+        0 0 30px rgba(120,180,255,.5),
+        0 0 70px rgba(80,140,255,.28);
+    pointer-events:none; z-index:4;
+}
+
+/* МАРС */
+.mars.planet-sphere { background:#94422a; }
+.mars .surface {
+    background-color:#c2683a;
+    background-image:
+        radial-gradient(ellipse 30% 20% at 30% 40%, rgba(90,35,20,.6) 0%, transparent 70%),
+        radial-gradient(ellipse 22% 15% at 65% 62%, rgba(80,30,18,.55) 0%, transparent 70%),
+        radial-gradient(ellipse 15% 10% at 50% 25%, rgba(120,50,30,.45) 0%, transparent 70%),
+        radial-gradient(ellipse 22% 7% at 50% 4%, rgba(255,255,255,.9) 0%, transparent 100%),
+        radial-gradient(circle at 40% 38%, #e2955f 0%, #c2683a 35%, #94422a 65%, #5c2416 90%, #2e120a 100%);
+}
+
+/* ЮПИТЕР */
+.jupiter { width:260px; height:260px; margin:-130px 0 0 -130px; }
+.jupiter.planet-sphere { background:#d2a97c; }
+.jupiter .surface {
+    background-color:#d2a97c;
+    background-image:
+        radial-gradient(ellipse 18% 10% at 68% 58%, #c45a34 0%, #8f3a1e 45%, rgba(143,58,30,.4) 75%, transparent 90%),
+        repeating-linear-gradient(2deg,
+            #b98a63 0 6px, #e8cba0 7px 13px, #a97853 15px 20px, #f0dbb4 22px 28px,
+            #bb8e68 30px 36px, #e0bf94 38px 44px, #a97853 46px 52px, #ecd3aa 54px 60px),
+        radial-gradient(circle at 40% 35%, #f2d9b0 0%, #d2a97c 40%, #8d6242 75%, #4a2f1e 100%);
+}
+
+/* САТУРН */
+.saturn.planet-sphere {
+    background:#cdae7e;
+    overflow:visible;
+}
+.saturn .surface {
+    background-color:#cdae7e;
+    background-image:
+        repeating-linear-gradient(0deg,
+            #e9d5ac 0 8px, #cdb07c 10px 15px, #f0e0b8 17px 23px,
+            #c2a069 25px 30px, #eedbb2 32px 38px, #d8bc88 40px 46px),
+        radial-gradient(circle at 40% 35%, #f4e2bd 0%, #cdae7e 40%, #8f7250 75%, #4a3a28 100%);
+    border-radius:50%;
+}
+.saturn .rings {
+    position:absolute;
+    width:340px; height:100px;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%) rotate(-22deg);
+    border-radius:50%;
+    border:20px solid rgba(206,177,125,.55);
+    border-top-color:rgba(230,210,160,.75);
+    border-bottom-color:rgba(180,145,95,.6);
+    box-shadow:0 0 10px rgba(255,220,150,.3), inset 0 0 8px rgba(255,230,180,.4);
+    z-index:-1; pointer-events:none;
+}
+
+/* УРАН */
+.uranus.planet-sphere { background:#7fc9d4; }
+.uranus .surface {
+    background-color:#7fc9d4;
+    background-image:
+        radial-gradient(ellipse 50% 20% at 40% 40%, rgba(220,250,255,.3) 0%, transparent 70%),
+        repeating-linear-gradient(0deg,
+            #a8e8f0 0 6px, #c8f2f6 7px 14px, #9adde8 15px 22px, #d4f5f8 24px 30px),
+        radial-gradient(circle at 40% 35%, #c8f5f8 0%, #7fc9d4 40%, #3d8a9a 75%, #1a4552 100%);
+}
+.uranus .atmosphere {
+    position:absolute; inset:-6px; border-radius:50%;
+    box-shadow:inset 0 0 20px rgba(160,240,255,.5), 0 0 30px rgba(120,220,240,.4);
+    pointer-events:none; z-index:4;
+}
+
+/* НЕПТУН */
+.neptune.planet-sphere { background:#2d5ec4; }
+.neptune .surface {
+    background-color:#2d5ec4;
+    background-image:
+        radial-gradient(ellipse 20% 12% at 65% 48%, #102a6e 0%, #0a1d4e 60%, transparent 85%),
+        repeating-linear-gradient(165deg, transparent 0 20px, rgba(140,190,255,.22) 24px, transparent 34px 52px),
+        radial-gradient(circle at 40% 35%, #5a8fe0 0%, #2d5ec4 40%, #16368a 75%, #071245 100%);
+}
+.neptune .atmosphere {
+    position:absolute; inset:-6px; border-radius:50%;
+    box-shadow:inset 0 0 22px rgba(90,140,255,.55), 0 0 30px rgba(70,120,240,.45);
+    pointer-events:none; z-index:4;
+}
+
+/* UI */
+#header {
+    position:absolute; top:35px; width:100%; text-align:center;
+    pointer-events:none; z-index:10;
+}
+#header h1 {
+    font-size:19px; font-weight:300; letter-spacing:5px;
+    color:#e5d8ff; text-shadow:0 0 25px #a17aff;
+}
+#header p {
+    font-size:10px; color:#9995bc; letter-spacing:3px; margin-top:10px;
+}
+#hint {
+    position:absolute; bottom:40px; width:100%; text-align:center;
+    color:#c1bbdd; font-size:13px; padding:0 20px; z-index:10;
+    pointer-events:none;
+}
+#fact {
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    width:min(88%,400px); padding:25px; text-align:center;
+    background:rgba(7,12,35,.92); backdrop-filter:blur(18px);
+    border:1px solid rgba(180,160,255,.4); border-radius:24px;
+    display:none; z-index:15; box-shadow:0 0 60px rgba(100,70,255,.2);
+    pointer-events:none;
+}
+#fact h2 { color:#d8c5ff; font-size:27px; font-weight:300; margin-bottom:15px; }
+#fact p { line-height:1.8; font-size:14px; color:#e0e0ed; }
+
+#intro {
+    position:absolute; inset:0; z-index:30;
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    text-align:center; padding:30px;
+    background:radial-gradient(circle,#171638,#02030b);
+}
+#intro .symbol { font-size:65px; margin-bottom:25px; animation:float 4s infinite; }
+#intro h1 { font-size:32px; font-weight:300; color:#e3d4ff; margin-bottom:20px; }
+#intro p { color:#b7b4d0; line-height:1.9; font-size:15px; max-width:330px; }
+#intro button {
+    margin-top:30px; border:1px solid #c4a8ff; border-radius:30px;
+    background:linear-gradient(90deg,#6445bd,#a16ce7);
+    padding:15px 30px; color:white; font-size:14px;
+}
+@keyframes float { 50%{transform:translateY(-15px)} }
+
+#finalMessage {
+    position:absolute; top:12%; width:100%; text-align:center;
+    color:#e6dcff; font-size:15px; line-height:1.8; letter-spacing:2px;
+    display:none; z-index:10; pointer-events:none;
 }
 </style>
 </head>
 <body>
-<canvas id="space"></canvas>
-<div class="hint">ПРИБЛИЖАЙ КОСМОС</div>
+
+<div id="universe">
+
+<canvas id="stars"></canvas>
+
+<div id="scene"></div>
+
+<div id="header">
+    <h1 id="planetTitle">SOLAR SYSTEM</h1>
+    <p>ПУТЕШЕСТВИЕ ПО ВСЕЛЕННОЙ</p>
+</div>
+
+<div id="hint">Приближай планету двумя пальцами</div>
+
+<div id="fact">
+    <h2 id="factTitle"></h2>
+    <p id="factText"></p>
+</div>
+
+<div id="finalMessage">
+    Мы прошли через целую Вселенную...<br>
+    А теперь посмотри на звёзды.
+</div>
+
+<div id="intro">
+    <div class="symbol">🌌</div>
+    <h1>Космическое путешествие</h1>
+    <p>
+        В бескрайней Вселенной скрыто множество чудес.<br><br>
+        Приближай планеты, исследуй их тайны
+        и отправляйся всё дальше.<br><br>
+        Возможно, в конце тебя ждёт кое-что особенное.
+    </p>
+    <button id="startButton">НАЧАТЬ ПУТЕШЕСТВИЕ ✨</button>
+</div>
+
+</div>
+
 <script>
-const canvas = document.getElementById("space");
-const ctx = canvas.getContext("2d");
-let w, h, dpr;
-function resize() {
-  dpr = Math.min(devicePixelRatio || 1, 2);
-  w = innerWidth;
-  h = innerHeight;
-  canvas.width = w * dpr;
-  canvas.height = h * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  createTextTargets();
-}
-addEventListener("resize", resize);
-// Создаём надпись на невидимом холсте.
-// Координаты точек будут целями для уже существующих звёзд.
-const textCanvas = document.createElement("canvas");
-const textCtx = textCanvas.getContext("2d");
-let targets = [];
-function createTextTargets() {
-  textCanvas.width = w;
-  textCanvas.height = h;
-  textCtx.clearRect(0, 0, w, h);
-  const fontSize = Math.min(w * 0.145, 68);
-  textCtx.textAlign = "center";
-  textCtx.textBaseline = "middle";
-  textCtx.fillStyle = "#fff";
-  textCtx.font = `bold ${fontSize}px Arial`;
-  textCtx.fillText("Ты моя", w / 2, h / 2 - fontSize * .65);
-  textCtx.fillText("звезда", w / 2, h / 2 + fontSize * .65);
-  const pixels = textCtx.getImageData(0, 0, w, h).data;
-  targets = [];
-  // Берём точки с достаточной плотностью,
-  // чтобы буквы были хорошо различимы.
-  const step = Math.max(2, Math.floor(w / 190));
-  for (let y = 0; y < h; y += step) {
-    for (let x = 0; x < w; x += step) {
-      const alpha = pixels[(y * w + x) * 4 + 3];
-      if (alpha > 120) {
-        targets.push({ x, y });
-      }
+
+const data = [
+{name:"Меркурий",className:"mercury",fact:"На Меркурии есть кратер, названный в честь Толкина. А ещё из-за почти полного отсутствия атмосферы небо там всегда чёрное, даже днём."},
+{name:"Венера",className:"venus",fact:"На Венере один оборот вокруг своей оси длится дольше, чем её год! Она вращается в обратную сторону относительно большинства планет."},
+{name:"Земля",className:"earth",fact:"Если бы Земля была размером с яблоко, атмосфера, пригодная для дыхания, была бы тоньше кожуры. Именно эта тонкая оболочка защищает всё живое."},
+{name:"Марс",className:"mars",fact:"На Марсе находится Олимп — вулкан высотой около 22 километров. Это почти в три раза выше Эвереста!"},
+{name:"Юпитер",className:"jupiter",fact:"Большое красное пятно Юпитера — гигантский шторм, который бушует уже несколько столетий. Его размеры настолько велики, что раньше внутри него могли бы поместиться несколько Земель."},
+{name:"Сатурн",className:"saturn",fact:"Если бы существовала достаточно большая ванна, Сатурн мог бы плавать в воде! Его средняя плотность меньше плотности воды."},
+{name:"Уран",className:"uranus",fact:"На Уране могут идти алмазные дожди: под огромным давлением углерод в его недрах способен превращаться в алмазы."},
+{name:"Нептун",className:"neptune",fact:"Нептун получает примерно в 900 раз меньше солнечного света, чем Земля. И всё же в его атмосфере бушуют одни из самых быстрых ветров в Солнечной системе."}
+];
+
+const LAYOUT = [
+    { x: -300, y:  -30 },
+    { x:  300, y:   40 },
+    { x: -290, y:   70 },
+    { x:  300, y:  -50 },
+    { x: -330, y:   20 },
+    { x:  340, y:  -10 },
+    { x: -290, y:  -70 },
+    { x:  290, y:   60 }
+];
+
+const NUM_PLANETS = data.length;
+const STAR_LAYER = NUM_PLANETS - 1 + 1.0;   // 8.0
+const MAX_CAM = STAR_LAYER + 1.2;
+
+let camTarget = 0;
+let camCurrent = 0;
+
+let lastFactIndex = -1;
+
+const scene = document.getElementById("scene");
+const title = document.getElementById("planetTitle");
+const hint = document.getElementById("hint");
+const fact = document.getElementById("fact");
+const finalMessage = document.getElementById("finalMessage");
+const universe = document.getElementById("universe");
+
+const layers = [];
+
+function buildAllLayers() {
+    scene.innerHTML = "";
+    layers.length = 0;
+
+    for (let i = 0; i < NUM_PLANETS; i++) {
+        const layer = document.createElement("div");
+        layer.className = "layer";
+
+        const sphere = document.createElement("div");
+        sphere.className = "planet-sphere " + data[i].className;
+
+        const surface = document.createElement("div");
+        surface.className = "surface";
+        sphere.appendChild(surface);
+
+        if (i === 2) {
+            const clouds = document.createElement("div");
+            clouds.className = "clouds";
+            sphere.appendChild(clouds);
+            const atmo = document.createElement("div");
+            atmo.className = "atmosphere";
+            sphere.appendChild(atmo);
+        }
+        if (i === 5) {
+            const rings = document.createElement("div");
+            rings.className = "rings";
+            sphere.appendChild(rings);
+        }
+        if (i === 6) {
+            const atmo = document.createElement("div");
+            atmo.className = "atmosphere";
+            sphere.appendChild(atmo);
+        }
+        if (i === 7) {
+            const atmo = document.createElement("div");
+            atmo.className = "atmosphere";
+            sphere.appendChild(atmo);
+        }
+
+        layer.appendChild(sphere);
+        scene.appendChild(layer);
+        layers.push(layer);
     }
-  }
-  // Перемешиваем цели, чтобы звёзды собирались равномерно.
-  for (let i = targets.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [targets[i], targets[j]] = [targets[j], targets[i]];
-  }
-  // Каждой существующей звезде назначаем точку в надписи.
-  stars.forEach((star, i) => {
-    star.target = targets[i % targets.length];
-  });
 }
-// Все звёзды создаются один раз в начале.
-// При финальном приближении новые звёзды не добавляются.
-const stars = [];
-const STAR_COUNT = 1100;
-for (let i = 0; i < STAR_COUNT; i++) {
-  stars.push({
-    x: Math.random(),
-    y: Math.random(),
-    size: Math.random() * 1.5 + .35,
-    alpha: Math.random() * .65 + .25,
-    phase: Math.random() * Math.PI * 2,
-    speed: Math.random() * .8 + .2,
-    target: null
-  });
-}
-// Прогресс приближения от 0 до 1.
-let progress = 0;
-let targetProgress = 0;
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
-}
-function smoothstep(a, b, x) {
-  x = clamp((x - a) / (b - a), 0, 1);
-  return x * x * (3 - 2 * x);
-}
-// Управление pinch-жестом.
-let pointers = new Map();
-let lastDistance = 0;
-function distance(a, b) {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-}
-canvas.addEventListener("pointerdown", e => {
-  canvas.setPointerCapture(e.pointerId);
-  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (pointers.size === 2) {
-    const p = [...pointers.values()];
-    lastDistance = distance(p[0], p[1]);
-  }
-});
-canvas.addEventListener("pointermove", e => {
-  if (!pointers.has(e.pointerId)) return;
-  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (pointers.size === 2) {
-    const p = [...pointers.values()];
-    const current = distance(p[0], p[1]);
-    if (lastDistance > 0) {
-      const change = current / lastDistance;
-      targetProgress += Math.log(change) * .28;
-      targetProgress = clamp(targetProgress, 0, 1);
+
+// ЗВЁЗДЫ
+const starCanvas = document.getElementById("stars");
+const starCtx = starCanvas.getContext("2d");
+
+let stars = [];
+let textTargets = [];
+
+function createStars() {
+    starCanvas.width = innerWidth;
+    starCanvas.height = innerHeight;
+    stars = [];
+    for (let i = 0; i < 450; i++) {
+        const x = Math.random() * innerWidth;
+        const y = Math.random() * innerHeight;
+        stars.push({
+            homeX: x, homeY: y,
+            x, y,
+            r: Math.random() * 1.5 + .3,
+            alpha: Math.random(),
+            target: null,
+            hasTarget: false
+        });
     }
-    lastDistance = current;
-  }
-});
-function releasePointer(e) {
-  pointers.delete(e.pointerId);
-  lastDistance = 0;
 }
-canvas.addEventListener("pointerup", releasePointer);
-canvas.addEventListener("pointercancel", releasePointer);
-// Для проверки на компьютере — колесо мыши.
-canvas.addEventListener("wheel", e => {
-  e.preventDefault();
-  targetProgress += -e.deltaY * .0007;
-  targetProgress = clamp(targetProgress, 0, 1);
+
+function prepareTextTargets() {
+    textTargets = [];
+    const w = starCanvas.width;
+    const h = starCanvas.height;
+    const temp = document.createElement("canvas");
+    temp.width = w; temp.height = h;
+    const tctx = temp.getContext("2d");
+    tctx.fillStyle = "white";
+    tctx.textAlign = "center";
+    tctx.textBaseline = "middle";
+    const font = Math.min(w / 8, 55);
+    tctx.font = "bold " + font + "px Arial";
+    tctx.fillText("Ты моя", w / 2, h / 2 - 40);
+    tctx.fillText("звезда", w / 2, h / 2 + 35);
+
+    const pixels = tctx.getImageData(0, 0, w, h).data;
+    const raw = [];
+    for (let y = 0; y < h; y += 4) {
+        for (let x = 0; x < w; x += 4) {
+            const i = (y * w + x) * 4;
+            if (pixels[i + 3] > 100) raw.push({ x, y });
+        }
+    }
+    for (let i = raw.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [raw[i], raw[j]] = [raw[j], raw[i]];
+    }
+    textTargets = raw;
+
+    for (let i = 0; i < stars.length; i++) {
+        const t = textTargets[i];
+        if (t) {
+            stars[i].target = { x: t.x, y: t.y };
+            stars[i].hasTarget = true;
+        }
+    }
+}
+
+function starMorphFactor() {
+    const lo = STAR_LAYER - 0.6;
+    const hi = STAR_LAYER + 0.3;
+    let t = (camCurrent - lo) / (hi - lo);
+    return Math.max(0, Math.min(1, t));
+}
+
+function animateStars() {
+    starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+    const morph = starMorphFactor();
+
+    for (const s of stars) {
+        if (s.hasTarget) {
+            const tx = s.homeX + (s.target.x - s.homeX) * morph;
+            const ty = s.homeY + (s.target.y - s.homeY) * morph;
+            s.x += (tx - s.x) * 0.09;
+            s.y += (ty - s.y) * 0.09;
+        } else {
+            s.x += (s.homeX - s.x) * 0.05;
+            s.y += (s.homeY - s.y) * 0.05;
+        }
+
+        s.alpha += (Math.random() - .5) * .04;
+        s.alpha = Math.max(.2, Math.min(1, s.alpha));
+
+        const glow = morph > 0.05 ? morph * 10 : 0;
+
+        starCtx.beginPath();
+        starCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        starCtx.fillStyle = "rgba(240,235,255," + s.alpha + ")";
+        starCtx.shadowBlur = glow;
+        starCtx.shadowColor = "#a78bfa";
+        starCtx.fill();
+    }
+    starCtx.shadowBlur = 0;
+    requestAnimationFrame(animateStars);
+}
+
+// КАМЕРА
+function applyCamera() {
+    for (let i = 0; i < layers.length; i++) {
+        const layer = layers[i];
+        const d = camCurrent - i;
+
+        let scale, opacity;
+
+        if (d < 0) {
+            scale = Math.max(0.04, 1 - Math.min(1, -d) * 0.9);
+            opacity = Math.max(0, 1 - Math.min(1, -d) * 0.9);
+        } else {
+            scale = 1 + Math.min(1, d) * 9;
+            opacity = Math.max(0, 1 - Math.min(1, d) * 1.05);
+        }
+
+        const off = LAYOUT[i];
+
+        layer.style.transform =
+            "translate(" + off.x + "px," + off.y + "px) " +
+            "scale(" + scale + ")";
+        layer.style.opacity = opacity;
+        layer.style.display = (opacity < 0.02) ? "none" : "block";
+    }
+
+    const active = Math.max(0, Math.min(NUM_PLANETS - 1, Math.round(camCurrent)));
+
+    // ПЛАНЕТНАЯ ЗОНА (до Нептуна включительно)
+    if (camCurrent < NUM_PLANETS - 0.5) {
+        title.innerText = data[active].name.toUpperCase();
+        hint.innerText = "Приближай " + data[active].name + " двумя пальцами ✨";
+        finalMessage.style.display = "none";
+    } else {
+        // ЗВЁЗДНАЯ ЗОНА (после Нептуна)
+        title.innerText = "";
+        finalMessage.style.display = "block";
+
+        if (camCurrent >= STAR_LAYER) {
+            hint.innerText = "Ты моя звезда ❤️";
+        } else {
+            hint.innerText = "Отдаляй, чтобы вернуться к планетам ✨";
+        }
+    }
+
+    // Факт показываем только в планетной зоне
+    if (camCurrent < NUM_PLANETS - 0.5) {
+        const distToActive = Math.abs(camCurrent - active);
+        if (distToActive < 0.35 && active !== lastFactIndex) {
+            showFact(active);
+            lastFactIndex = active;
+        }
+        if (distToActive > 0.6) {
+            hideFact();
+            lastFactIndex = -1;
+        }
+    } else {
+        hideFact();
+        lastFactIndex = -1;
+    }
+}
+
+function showFact(i) {
+    document.getElementById("factTitle").innerText = "✨ " + data[i].name;
+    document.getElementById("factText").innerText = data[i].fact;
+    fact.style.display = "block";
+}
+function hideFact() {
+    fact.style.display = "none";
+}
+
+// ЦИКЛ КАМЕРЫ
+let lastTime = performance.now();
+
+function cameraLoop(t) {
+    const dt = Math.min(0.05, (t - lastTime) / 1000);
+    lastTime = t;
+
+    const k = 1 - Math.pow(0.02, dt);
+    const diff = camTarget - camCurrent;
+    if (Math.abs(diff) > 0.0005) {
+        camCurrent += diff * k;
+    } else {
+        camCurrent = camTarget;
+    }
+
+    applyCamera();
+    requestAnimationFrame(cameraLoop);
+}
+
+// ЖЕСТЫ
+const pointers = new Map();
+let pinchStartDist = 0;
+let pinchStartCam = 0;
+
+function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+universe.addEventListener("pointerdown", e => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+        const p = [...pointers.values()];
+        pinchStartDist = distance(p[0], p[1]);
+        pinchStartCam = camTarget;
+    }
+});
+
+universe.addEventListener("pointermove", e => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointers.size !== 2 || pinchStartDist === 0) return;
+
+    const p = [...pointers.values()];
+    const d = distance(p[0], p[1]);
+
+    const ratio = d / pinchStartDist;
+    const camDelta = Math.log(ratio) * 1.6;
+    camTarget = Math.max(0, Math.min(MAX_CAM, pinchStartCam + camDelta));
+});
+
+function pointerEnd(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinchStartDist = 0;
+}
+
+universe.addEventListener("pointerup", pointerEnd);
+universe.addEventListener("pointercancel", pointerEnd);
+
+universe.addEventListener("wheel", e => {
+    e.preventDefault();
+    const step = e.deltaY > 0 ? 0.18 : -0.18;
+    camTarget = Math.max(0, Math.min(MAX_CAM, camTarget + step));
 }, { passive: false });
-// Плавное движение каждой звезды к своей точке.
-function draw(time) {
-  requestAnimationFrame(draw);
-  progress += (targetProgress - progress) * .045;
-  ctx.fillStyle = "#02030b";
-  ctx.fillRect(0, 0, w, h);
-  // Небольшая глубина пространства.
-  const formation = smoothstep(.08, .88, progress);
-  // Фоновое свечение усиливается по мере формирования текста.
-  const glow = ctx.createRadialGradient(
-    w / 2, h / 2, 0,
-    w / 2, h / 2, Math.max(w, h) * .65
-  );
-  glow.addColorStop(0, `rgba(27,35,85,${.05 + formation * .17})`);
-  glow.addColorStop(1, "rgba(2,3,11,0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, w, h);
-  for (let i = 0; i < stars.length; i++) {
-    const s = stars[i];
-    // Исходная позиция — та же самая на протяжении всего путешествия.
-    const startX = s.x * w;
-    const startY = s.y * h;
-    const target = s.target;
-    const endX = target ? target.x : startX;
-    const endY = target ? target.y : startY;
-    const x = startX + (endX - startX) * formation;
-    const y = startY + (endY - startY) * formation;
-    const twinkle = .72 + Math.sin(time * .001 * s.speed + s.phase) * .22;
-    const alpha = s.alpha * twinkle;
-    // При сборке звёзды становятся ярче и чуть чётче.
-    const size = s.size * (1 + formation * .55);
-    ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(225,235,255,${alpha})`;
-    ctx.fill();
-    // Мягкое свечение вокруг звёзд надписи.
-    if (formation > .45 && i % 3 === 0) {
-      ctx.beginPath();
-      ctx.arc(x, y, size * 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(145,175,255,${formation * .10})`;
-      ctx.fill();
-    }
-  }
-  // Лёгкое свечение букв помогает сделать фразу читаемой.
-  if (formation > .7) {
-    ctx.save();
-    ctx.globalAlpha = smoothstep(.7, 1, formation) * .16;
-    ctx.shadowColor = "#9bbcff";
-    ctx.shadowBlur = 22;
-    ctx.fillStyle = "#a9c8ff";
-    ctx.font = `bold ${Math.min(w * .145, 68)}px Arial`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("Ты моя", w / 2, h / 2 - Math.min(w * .145, 68) * .65);
-    ctx.fillText("звезда", w / 2, h / 2 + Math.min(w * .145, 68) * .65);
-    ctx.restore();
-  }
-}
-resize();
-requestAnimationFrame(draw);
+
+// СТАРТ
+document.getElementById("startButton").addEventListener("click", () => {
+    document.getElementById("intro").style.display = "none";
+
+    buildAllLayers();
+    createStars();
+    prepareTextTargets();
+
+    camCurrent = 0;
+    camTarget = 0;
+
+    applyCamera();
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            camTarget = 0.001;
+        });
+    });
+
+    lastTime = performance.now();
+    requestAnimationFrame(cameraLoop);
+    requestAnimationFrame(animateStars);
+});
+
+window.addEventListener("resize", () => {
+    createStars();
+    prepareTextTargets();
+});
+
 </script>
+
 </body>
 </html>
